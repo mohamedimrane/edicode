@@ -12,15 +12,12 @@ fn main() {
     let terminal_size = termion::terminal_size().unwrap();
 
     loop {
-        if let Err(e) = refresh_screen(&should_quit) {
+        if let Err(e) = refresh_screen(&terminal_size, &should_quit) {
             die(e);
         }
 
         if should_quit {
             break;
-        } else {
-            draw_rows(terminal_size);
-            termutils::set_cursor_position(0, 0);
         }
 
         if let Err(e) = process_keypress(&mut should_quit) {
@@ -29,13 +26,16 @@ fn main() {
     }
 }
 
-fn refresh_screen(should_quit: &bool) -> Result<(), io::Error> {
+fn refresh_screen(terminal_size: &(u16, u16), should_quit: &bool) -> Result<(), io::Error> {
     termutils::hide_cursor();
     termutils::set_cursor_position(0, 0);
 
     if *should_quit {
         termutils::clear();
         println!("exited");
+    } else {
+        draw_rows(terminal_size);
+        termutils::set_cursor_position(0, 0);
     }
 
     termutils::show_cursor();
@@ -68,7 +68,7 @@ fn read_key() -> Result<Key, io::Error> {
     }
 }
 
-fn draw_rows(terminal_size: (u16, u16)) {
+fn draw_rows(terminal_size: &(u16, u16)) {
     for row in 0..terminal_size.1 - 1 {
         termutils::clear_line();
 
@@ -80,7 +80,7 @@ fn draw_rows(terminal_size: (u16, u16)) {
     }
 }
 
-fn draw_welcome_message(terminal_size: (u16, u16)) {
+fn draw_welcome_message(terminal_size: &(u16, u16)) {
     let mut welcome_message = format!("Edicode -- version {}", VERSION);
     let width = terminal_size.0 as usize;
     let len = welcome_message.len();
