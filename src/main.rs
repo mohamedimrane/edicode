@@ -1,9 +1,11 @@
 use cursor::CursorPosition;
+use file::{File, Row};
 use std::io::{self, Write};
 use terminal_utils as termutils;
 use termion::{event::Key, input::TermRead, raw::IntoRawMode};
 
 mod cursor;
+mod file;
 mod terminal_utils;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -11,11 +13,20 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 fn main() {
     let _stdout = io::stdout().into_raw_mode().unwrap();
     let mut should_quit = false;
+    let file = {
+        let args: Vec<String> = std::env::args().collect();
+
+        if args.len() > 1 {
+            File::open(&args[1]).unwrap_or_default()
+        } else {
+            File::default()
+        }
+    };
     let terminal_size = termion::terminal_size().unwrap();
     let mut cursor_position = CursorPosition::default();
 
     loop {
-        if let Err(e) = refresh_screen(&cursor_position, &terminal_size, &should_quit) {
+        if let Err(e) = refresh_screen(&file, &cursor_position, &terminal_size, &should_quit) {
             die(e);
         }
 
@@ -30,6 +41,7 @@ fn main() {
 }
 
 fn refresh_screen(
+    file: &File,
     cursor_position: &CursorPosition,
     terminal_size: &(u16, u16),
     should_quit: &bool,
@@ -41,7 +53,7 @@ fn refresh_screen(
         termutils::clear();
         println!("exited");
     } else {
-        draw_rows(terminal_size);
+        draw_rows(file, terminal_size);
         termutils::set_cursor_position(cursor_position);
     }
 
@@ -93,11 +105,17 @@ fn move_cursor(pressed_key: Key, cursor_position: &mut CursorPosition, terminal_
     };
 }
 
-fn draw_rows(terminal_size: &(u16, u16)) {
-    for row in 0..terminal_size.1 - 1 {
+fn draw_row(row: &Row, terminal_size: &(u16, u16)) {
+    println!("{}\r", row.render(0, terminal_size.0 as usize));
+}
+
+fn draw_rows(file: &File, terminal_size: &(u16, u16)) {
+    for terminal_row in 0..terminal_size.1 - 1 {
         termutils::clear_line();
 
-        if row == terminal_size.1 / 3 {
+        if let Some(row) = file.row(terminal_row as usize) {
+            draw_row(row, terminal_size);
+        } else if file.is_empty() && terminal_row == terminal_size.1 / 3 {
             draw_welcome_message(terminal_size);
         } else {
             println!("~\r");
