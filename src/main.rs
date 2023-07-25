@@ -1,14 +1,23 @@
-use std::io;
+use std::io::{self, Write};
 use termion::{event::Key, input::TermRead, raw::IntoRawMode};
 
 fn main() {
     let _stdout = io::stdout().into_raw_mode().unwrap();
 
     loop {
+        if let Err(e) = refresh_screen() {
+            die(e);
+        }
+
         if let Err(e) = process_keypress() {
             die(e);
         }
     }
+}
+
+fn refresh_screen() -> Result<(), io::Error> {
+    println!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
+    io::stdout().flush()
 }
 
 fn process_keypress() -> Result<(), io::Error> {
