@@ -23,7 +23,7 @@ fn main() {
             break;
         }
 
-        if let Err(e) = process_keypress(&mut should_quit) {
+        if let Err(e) = process_keypress(&mut cursor_position, &terminal_size, &mut should_quit) {
             die(e);
         }
     }
@@ -49,19 +49,19 @@ fn refresh_screen(
     io::stdout().flush()
 }
 
-fn process_keypress(should_quit: &mut bool) -> Result<(), io::Error> {
+fn process_keypress(
+    cursor_position: &mut CursorPosition,
+    terminal_size: &(u16, u16),
+    should_quit: &mut bool,
+) -> Result<(), io::Error> {
     let pressed_key = read_key()?;
 
     match pressed_key {
-        Key::Char(c) => {
-            if c.is_control() {
-                println!("{:?}\r", c as u8);
-            } else {
-                println!("{:?} ({})\r", c as u8, c);
-            }
-        }
         Key::Ctrl('q') => *should_quit = true,
-        _ => println!("{:?}\r", pressed_key),
+        Key::Up | Key::Down | Key::Left | Key::Right => {
+            move_cursor(pressed_key, cursor_position, terminal_size)
+        }
+        _ => (),
     };
 
     Ok(())
@@ -73,6 +73,24 @@ fn read_key() -> Result<Key, io::Error> {
             return key;
         }
     }
+}
+
+fn move_cursor(pressed_key: Key, cursor_position: &mut CursorPosition, terminal_size: &(u16, u16)) {
+    match pressed_key {
+        Key::Up => cursor_position.y = cursor_position.y.saturating_sub(1),
+        Key::Down => {
+            if cursor_position.y < terminal_size.1 as usize {
+                cursor_position.y = cursor_position.y.saturating_add(1)
+            }
+        }
+        Key::Left => cursor_position.x = cursor_position.x.saturating_sub(1),
+        Key::Right => {
+            if cursor_position.x < terminal_size.0 as usize {
+                cursor_position.x = cursor_position.x.saturating_add(1)
+            }
+        }
+        _ => unreachable!(),
+    };
 }
 
 fn draw_rows(terminal_size: &(u16, u16)) {
