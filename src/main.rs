@@ -1,18 +1,17 @@
-use std::io::{self, Read};
+use std::io;
 use termion::{event::Key, input::TermRead, raw::IntoRawMode};
 
 fn main() {
     let _stdout = io::stdout().into_raw_mode().unwrap();
 
-    for key in io::stdin().keys() {
-        match key {
-            Ok(key) => ,
-            Err(e) => die(e),
+    loop {
+        if let Err(e) = process_keypress() {
+            die(e);
         }
     }
 }
 
-fn process_keypress() -> Result<(), std::io::Error> {
+fn process_keypress() -> Result<(), io::Error> {
     let pressed_key = read_key()?;
 
     match pressed_key {
@@ -30,7 +29,7 @@ fn process_keypress() -> Result<(), std::io::Error> {
     Ok(())
 }
 
-fn read_key() -> Result<Key, std::io::Error> {
+fn read_key() -> Result<Key, io::Error> {
     loop {
         if let Some(key) = io::stdin().lock().keys().next() {
             return key;
@@ -38,6 +37,6 @@ fn read_key() -> Result<Key, std::io::Error> {
     }
 }
 
-fn die(e: std::io::Error) {
+fn die(e: io::Error) {
     panic!("{}", e);
 }
