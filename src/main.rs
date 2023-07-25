@@ -4,6 +4,7 @@ use termion::{event::Key, input::TermRead, raw::IntoRawMode};
 fn main() {
     let _stdout = io::stdout().into_raw_mode().unwrap();
     let mut should_quit = false;
+    let terminal_size = termion::terminal_size().unwrap();
 
     loop {
         if let Err(e) = refresh_screen(&should_quit) {
@@ -12,6 +13,9 @@ fn main() {
 
         if should_quit {
             break;
+        } else {
+            draw_rows(terminal_size.1);
+            println!("{}", termion::cursor::Goto(1, 1));
         }
 
         if let Err(e) = process_keypress(&mut should_quit) {
@@ -21,12 +25,14 @@ fn main() {
 }
 
 fn refresh_screen(should_quit: &bool) -> Result<(), io::Error> {
-    println!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
+    print!("{}{}", termion::cursor::Hide, termion::cursor::Goto(1, 1));
 
     if *should_quit {
+        print!("{}", termion::clear::All);
         println!("exited");
     }
 
+    print!("{}", termion::cursor::Show);
     io::stdout().flush()
 }
 
@@ -53,6 +59,13 @@ fn read_key() -> Result<Key, io::Error> {
         if let Some(key) = io::stdin().lock().keys().next() {
             return key;
         }
+    }
+}
+
+fn draw_rows(terminal_height: u16) {
+    for _ in 0..terminal_height - 1 {
+        print!("{}", termion::clear::CurrentLine);
+        println!("~\r");
     }
 }
 
