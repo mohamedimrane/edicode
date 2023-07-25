@@ -1,7 +1,9 @@
+use cursor::CursorPosition;
 use std::io::{self, Write};
 use terminal_utils as termutils;
 use termion::{event::Key, input::TermRead, raw::IntoRawMode};
 
+mod cursor;
 mod terminal_utils;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -10,9 +12,10 @@ fn main() {
     let _stdout = io::stdout().into_raw_mode().unwrap();
     let mut should_quit = false;
     let terminal_size = termion::terminal_size().unwrap();
+    let mut cursor_position = CursorPosition::default();
 
     loop {
-        if let Err(e) = refresh_screen(&terminal_size, &should_quit) {
+        if let Err(e) = refresh_screen(&cursor_position, &terminal_size, &should_quit) {
             die(e);
         }
 
@@ -26,16 +29,20 @@ fn main() {
     }
 }
 
-fn refresh_screen(terminal_size: &(u16, u16), should_quit: &bool) -> Result<(), io::Error> {
+fn refresh_screen(
+    cursor_position: &CursorPosition,
+    terminal_size: &(u16, u16),
+    should_quit: &bool,
+) -> Result<(), io::Error> {
     termutils::hide_cursor();
-    termutils::set_cursor_position(0, 0);
+    termutils::set_cursor_position(&CursorPosition::default());
 
     if *should_quit {
         termutils::clear();
         println!("exited");
     } else {
         draw_rows(terminal_size);
-        termutils::set_cursor_position(0, 0);
+        termutils::set_cursor_position(cursor_position);
     }
 
     termutils::show_cursor();
