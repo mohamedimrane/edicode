@@ -6,20 +6,34 @@ fn main() {
 
     for key in io::stdin().keys() {
         match key {
-            Ok(key) => match key {
-                Key::Char(c) => {
-                    if c.is_control() {
-                        println!("{:?}\r", c as u8);
-                    } else {
-                        println!("{:?} ({})\r", c as u8, c);
-                    }
-                }
-                Key::Ctrl('q') => {
-                    break;
-                }
-                _ => println!("{:?}\r", key),
-            },
+            Ok(key) => ,
             Err(e) => die(e),
+        }
+    }
+}
+
+fn process_keypress() -> Result<(), std::io::Error> {
+    let pressed_key = read_key()?;
+
+    match pressed_key {
+        Key::Char(c) => {
+            if c.is_control() {
+                println!("{:?}\r", c as u8);
+            } else {
+                println!("{:?} ({})\r", c as u8, c);
+            }
+        }
+        Key::Ctrl('q') => panic!("Exited editor"),
+        _ => println!("{:?}\r", pressed_key),
+    };
+
+    Ok(())
+}
+
+fn read_key() -> Result<Key, std::io::Error> {
+    loop {
+        if let Some(key) = io::stdin().lock().keys().next() {
+            return key;
         }
     }
 }
