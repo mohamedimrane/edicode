@@ -1,5 +1,8 @@
 use std::io::{self, Write};
+use terminal_utils as termutils;
 use termion::{event::Key, input::TermRead, raw::IntoRawMode};
+
+mod terminal_utils;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -17,7 +20,7 @@ fn main() {
             break;
         } else {
             draw_rows(terminal_size);
-            println!("{}", termion::cursor::Goto(1, 1));
+            termutils::set_cursor_position(0, 0);
         }
 
         if let Err(e) = process_keypress(&mut should_quit) {
@@ -27,14 +30,15 @@ fn main() {
 }
 
 fn refresh_screen(should_quit: &bool) -> Result<(), io::Error> {
-    print!("{}{}", termion::cursor::Hide, termion::cursor::Goto(1, 1));
+    termutils::hide_cursor();
+    termutils::set_cursor_position(0, 0);
 
     if *should_quit {
-        print!("{}", termion::clear::All);
+        termutils::clear();
         println!("exited");
     }
 
-    print!("{}", termion::cursor::Show);
+    termutils::show_cursor();
     io::stdout().flush()
 }
 
@@ -66,7 +70,7 @@ fn read_key() -> Result<Key, io::Error> {
 
 fn draw_rows(terminal_size: (u16, u16)) {
     for row in 0..terminal_size.1 - 1 {
-        print!("{}", termion::clear::CurrentLine);
+        termutils::clear_line();
 
         if row == terminal_size.1 / 3 {
             draw_welcome_message(terminal_size);
@@ -88,6 +92,6 @@ fn draw_welcome_message(terminal_size: (u16, u16)) {
 }
 
 fn die(e: io::Error) {
-    print!("{}", termion::clear::All);
+    termutils::clear();
     panic!("{}", e);
 }
