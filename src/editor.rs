@@ -13,7 +13,7 @@ const STATUS_BAR_FG_COLOR: termion::color::Rgb = termion::color::Rgb(255, 255, 2
 #[derive(PartialEq, Eq)]
 enum Mode {
     Normal,
-    Edit,
+    Insert,
 }
 
 pub struct Editor {
@@ -93,7 +93,7 @@ impl Editor {
             Key::Ctrl('q') => self.should_quit = true,
             Key::Ctrl('s') => self.file.save().expect("Could not save file"),
             Key::Esc => self.mode = Mode::Normal,
-            Key::Char('i') if self.mode == Mode::Normal => self.mode = Mode::Edit,
+            Key::Char('i') if self.mode == Mode::Normal => self.mode = Mode::Insert,
             Key::Char('k') | Key::Char('j') | Key::Char('h') | Key::Char('l')
                 if self.mode == Mode::Normal =>
             {
@@ -101,7 +101,7 @@ impl Editor {
             }
 
             Key::Up | Key::Down | Key::Left | Key::Right => self.move_cursor(pressed_key),
-            Key::Backspace if self.mode == Mode::Edit => {
+            Key::Backspace if self.mode == Mode::Insert => {
                 let x = self.cursor_position.x.saturating_sub(1);
                 let y = self.cursor_position.y;
 
@@ -113,7 +113,7 @@ impl Editor {
                 }
                 self.file.delete(&Position { x, y });
             }
-            Key::Char(c) if self.mode == Mode::Edit => {
+            Key::Char(c) if self.mode == Mode::Insert => {
                 self.file.insert(c, &self.cursor_position);
                 self.move_cursor(Key::Right);
             }
@@ -237,7 +237,7 @@ impl Editor {
         let width = self.terminal_size.0 as usize;
         let mode = match self.mode {
             Mode::Normal => "NORMAL",
-            Mode::Edit => "EDIT",
+            Mode::Insert => "INSERT",
         };
         let file_name = if let Some(name) = self.file.name.clone() {
             name
