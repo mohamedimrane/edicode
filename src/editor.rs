@@ -10,9 +10,16 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const STATUS_BAR_BG_COLOR: termion::color::Rgb = termion::color::Rgb(0, 50, 100);
 const STATUS_BAR_FG_COLOR: termion::color::Rgb = termion::color::Rgb(255, 255, 255);
 
+#[derive(PartialEq, Eq)]
+enum Mode {
+    Normal,
+    Edit,
+}
+
 pub struct Editor {
     file: File,
     terminal_size: (u16, u16),
+    mode: Mode,
     cursor_position: Position,
     offset: Position,
     should_quit: bool,
@@ -34,6 +41,7 @@ impl Default for Editor {
                 }
             },
             terminal_size,
+            mode: Mode::Normal,
             cursor_position: Position::default(),
             offset: Position::default(),
             should_quit: false,
@@ -83,8 +91,16 @@ impl Editor {
 
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
+            Key::Esc => self.mode = Mode::Normal,
+            Key::Char('i') if self.mode == Mode::Normal => self.mode = Mode::Edit,
+            Key::Char('k') | Key::Char('j') | Key::Char('h') | Key::Char('l')
+                if self.mode == Mode::Normal =>
+            {
+                self.move_cursor(pressed_key)
+            }
+
             Key::Up | Key::Down | Key::Left | Key::Right => self.move_cursor(pressed_key),
-            Key::Backspace => {
+            Key::Backspace if self.mode == Mode::Edit => {
                 let x = self.cursor_position.x.saturating_sub(1);
                 let y = self.cursor_position.y;
 
@@ -96,7 +112,7 @@ impl Editor {
                 }
                 self.file.delete(&Position { x, y });
             }
-            Key::Char(c) => {
+            Key::Char(c) if self.mode == Mode::Edit => {
                 self.file.insert(c, &self.cursor_position);
                 self.move_cursor(Key::Right);
             }
@@ -154,13 +170,13 @@ impl Editor {
         };
 
         match pressed_key {
-            Key::Up => *y = y.saturating_sub(1),
-            Key::Down => {
+            Key::Up | Key::Char('k') => *y = y.saturating_sub(1),
+            Key::Down | Key::Char('j') => {
                 if *y < height as usize {
                     *y = y.saturating_add(1)
                 }
             }
-            Key::Left => {
+            Key::Left | Key::Char('h') => {
                 if *x > 0 {
                     *x -= 1;
                 } else if *y > 0 {
@@ -173,7 +189,7 @@ impl Editor {
                     }
                 }
             }
-            Key::Right => {
+            Key::Right | Key::Char('l') => {
                 if *x < width as usize {
                     *x += 1;
                 } else if *y < height {
