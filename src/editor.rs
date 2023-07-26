@@ -20,6 +20,7 @@ pub struct Editor {
     file: File,
     terminal_size: (u16, u16),
     mode: Mode,
+    command_bar_text: String,
     cursor_position: Position,
     offset: Position,
     should_quit: bool,
@@ -28,7 +29,7 @@ pub struct Editor {
 impl Default for Editor {
     fn default() -> Self {
         let mut terminal_size = termion::terminal_size().unwrap();
-        terminal_size.1 -= 2;
+        terminal_size.1 -= 3;
 
         Self {
             file: {
@@ -42,6 +43,7 @@ impl Default for Editor {
             },
             terminal_size,
             mode: Mode::Normal,
+            command_bar_text: String::new(),
             cursor_position: Position::default(),
             offset: Position::default(),
             should_quit: false,
@@ -76,6 +78,7 @@ impl Editor {
         } else {
             self.draw_rows();
             self.draw_status_bar();
+            self.draw_command_bar();
             termutils::set_cursor_position(&Position {
                 x: self.cursor_position.x.saturating_sub(self.offset.x),
                 y: self.cursor_position.y.saturating_sub(self.offset.y),
@@ -90,9 +93,18 @@ impl Editor {
         let pressed_key = Editor::read_key()?;
 
         match pressed_key {
+            // non mode specific
             Key::Ctrl('q') => self.should_quit = true,
             Key::Ctrl('s') => self.file.save().expect("Could not save file"),
             Key::Esc => self.mode = Mode::Normal,
+            Key::Up | Key::Down | Key::Left | Key::Right => self.move_cursor(pressed_key),
+
+            // normal mode specific
+            Key::Char(':') if self.mode == Mode::Normal => {
+                if let Ok(Some(command)) = self.prompt(":") {
+                    self.process_command(command);
+                }
+            }
             Key::Char('i') if self.mode == Mode::Normal => self.mode = Mode::Insert,
             Key::Char('k') | Key::Char('j') | Key::Char('h') | Key::Char('l')
                 if self.mode == Mode::Normal =>
@@ -100,7 +112,7 @@ impl Editor {
                 self.move_cursor(pressed_key)
             }
 
-            Key::Up | Key::Down | Key::Left | Key::Right => self.move_cursor(pressed_key),
+            // insert mode specific
             Key::Backspace if self.mode == Mode::Insert => {
                 let x = self.cursor_position.x.saturating_sub(1);
                 let y = self.cursor_position.y;
@@ -125,12 +137,43 @@ impl Editor {
         Ok(())
     }
 
+    fn process_command(&self, command: String) {}
+
     fn read_key() -> Result<Key, io::Error> {
         loop {
             if let Some(key) = io::stdin().lock().keys().next() {
                 return key;
             }
         }
+    }
+
+    fn prompt(&mut self, prompt: &str) -> Result<Option<String>, io::Error> {
+        let mut result = String::new();
+
+        loop {
+            self.command_bar_text = format!("{}{}", prompt, result);
+
+            self.refresh_screen()?;
+
+            match Self::read_key()? {
+                Key::Char('\n') => break,
+                Key::Char(c) => {
+                    if !c.is_control() {
+                        result.push(c);
+                    }
+                }
+                Key::Esc => result.truncate(0),
+                _ => (),
+            }
+        }
+
+        self.command_bar_text = String::new();
+
+        if result.is_empty() {
+            return Ok(None);
+        }
+
+        Ok(Some(result))
     }
 
     fn scroll(&mut self) {
@@ -274,6 +317,11 @@ impl Editor {
 
         termutils::reset_bg_color();
         termutils::reset_fg_color();
+    }
+
+    fn draw_command_bar(&self) {
+        termutils::clear_line();
+        println!("{}", self.command_bar_text);
     }
 
     fn draw_welcome_message(&self) {
