@@ -35,7 +35,7 @@ impl File {
             row.insert(0, c);
             self.rows.push(row);
         } else if at.y < self.len() {
-            self.rows.get_mut(at.y).unwrap().insert(at.x, c);
+            self.row_mut(at.y).unwrap().insert(at.x, c);
         }
     }
 
@@ -47,22 +47,22 @@ impl File {
         if at.x == 0 {
             let string = self.row(at.y).unwrap().string.clone();
 
-            self.rows
-                .get_mut(at.y - 1)
-                .unwrap()
-                .string
-                .push_str(&string);
+            self.row_mut(at.y - 1).unwrap().string.push_str(&string);
 
             self.rows.remove(at.y);
 
             return;
         }
 
-        self.rows.get_mut(at.y).unwrap().delete(at.x);
+        self.row_mut(at.y).unwrap().delete(at.x);
     }
 
     pub fn row(&self, index: usize) -> Option<&Row> {
         self.rows.get(index)
+    }
+
+    pub fn row_mut(&mut self, index: usize) -> Option<&mut Row> {
+        self.rows.get_mut(index)
     }
 
     pub fn is_empty(&self) -> bool {
