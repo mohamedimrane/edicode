@@ -3,8 +3,6 @@ use std::{
     io::{self, Write},
 };
 
-use crate::terminal_utils;
-
 #[derive(Default)]
 pub struct File {
     pub name: Option<String>,
@@ -50,12 +48,14 @@ impl File {
             return;
         }
 
-        if at.y == self.len() {
-            let mut row = Row::default();
-            row.insert(0, c);
-            self.rows.push(row);
-        } else if at.y < self.len() {
-            self.row_mut(at.y).unwrap().insert(at.x, c);
+        match at.y.cmp(&self.len()) {
+            std::cmp::Ordering::Equal => {
+                let mut row = Row::default();
+                row.insert(0, c);
+                self.rows.push(row);
+            }
+            std::cmp::Ordering::Less => self.row_mut(at.y).unwrap().insert(at.x, c),
+            _ => (),
         }
     }
 

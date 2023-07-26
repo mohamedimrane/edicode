@@ -173,7 +173,7 @@ impl Editor {
         match pressed_key {
             Key::Up | Key::Char('k') => *y = y.saturating_sub(1),
             Key::Down | Key::Char('j') => {
-                if *y < height as usize {
+                if *y < height {
                     *y = y.saturating_add(1)
                 }
             }
@@ -191,7 +191,7 @@ impl Editor {
                 }
             }
             Key::Right | Key::Char('l') => {
-                if *x < width as usize {
+                if *x < width {
                     *x += 1;
                 } else if *y < height {
                     *y += 1;
