@@ -12,6 +12,7 @@ pub struct Editor {
     file: File,
     terminal_size: (u16, u16),
     cursor_position: Position,
+    offset: Position,
     should_quit: bool,
 }
 
@@ -29,6 +30,7 @@ impl Default for Editor {
             },
             terminal_size: termion::terminal_size().unwrap(),
             cursor_position: Position::default(),
+            offset: Position::default(),
             should_quit: false,
         }
     }
@@ -60,7 +62,10 @@ impl Editor {
             println!("exited");
         } else {
             self.draw_rows();
-            termutils::set_cursor_position(&self.cursor_position);
+            termutils::set_cursor_position(&Position {
+                x: self.cursor_position.x.saturating_sub(self.offset.x),
+                y: self.cursor_position.y.saturating_sub(self.offset.y),
+            });
         }
 
         termutils::show_cursor();
@@ -76,6 +81,8 @@ impl Editor {
             _ => (),
         };
 
+        self.scroll();
+
         Ok(())
     }
 
@@ -87,17 +94,49 @@ impl Editor {
         }
     }
 
+    fn scroll(&mut self) {
+        if self.cursor_position.y < self.offset.y {
+            self.offset.y = self.cursor_position.y;
+        } else if self.cursor_position.y
+            >= self.offset.y.saturating_add(self.terminal_size.1 as usize)
+        {
+            self.offset.y = self
+                .cursor_position
+                .y
+                .saturating_sub(self.terminal_size.1 as usize)
+                .saturating_add(1);
+        }
+
+        if self.cursor_position.x < self.offset.x {
+            self.offset.x = self.cursor_position.x;
+        } else if self.cursor_position.x
+            >= self.offset.x.saturating_add(self.terminal_size.0 as usize)
+        {
+            self.offset.x = self
+                .cursor_position
+                .x
+                .saturating_sub(self.terminal_size.0 as usize)
+                .saturating_add(1);
+        }
+    }
+
     fn move_cursor(&mut self, pressed_key: Key) {
+        let width = if let Some(row) = self.file.row(self.cursor_position.y) {
+            row.len()
+        } else {
+            0
+        };
+
         match pressed_key {
             Key::Up => self.cursor_position.y = self.cursor_position.y.saturating_sub(1),
             Key::Down => {
-                if self.cursor_position.y < self.terminal_size.1 as usize {
+                if self.cursor_position.y < self.file.len() as usize {
                     self.cursor_position.y = self.cursor_position.y.saturating_add(1)
                 }
             }
             Key::Left => self.cursor_position.x = self.cursor_position.x.saturating_sub(1),
             Key::Right => {
-                if self.cursor_position.x < self.terminal_size.0 as usize {
+                if self.cursor_position.x < width as usize {
                     self.cursor_position.x = self.cursor_position.x.saturating_add(1)
                 }
             }
@@ -106,14 +145,17 @@ impl Editor {
     }
 
     fn draw_row(&self, row: &Row) {
-        println!("{}\r", row.render(0, self.terminal_size.0 as usize));
+        println!(
+            "{}\r",
+            row.render(self.offset.x, self.terminal_size.0 as usize + self.offset.x)
+        );
     }
 
     fn draw_rows(&self) {
         for terminal_row in 0..self.terminal_size.1 - 1 {
             termutils::clear_line();
 
-            if let Some(row) = self.file.row(terminal_row as usize) {
+            if let Some(row) = self.file.row(terminal_row as usize + self.offset.y) {
                 self.draw_row(row);
             } else if self.file.is_empty() && terminal_row == self.terminal_size.1 / 3 {
                 self.draw_welcome_message();

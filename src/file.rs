@@ -30,6 +30,10 @@ impl File {
     pub fn is_empty(&self) -> bool {
         self.rows.is_empty()
     }
+
+    pub fn len(&self) -> usize {
+        self.rows.len()
+    }
 }
 
 impl Row {
@@ -37,6 +41,14 @@ impl Row {
         let end = std::cmp::min(end, self.string.len());
         let start = std::cmp::min(start, end);
         self.string.get(start..end).unwrap_or_default().to_string()
+    }
+
+    pub fn len(&self) -> usize {
+        self.string.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.string.is_empty()
     }
 }
 
