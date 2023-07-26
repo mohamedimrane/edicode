@@ -84,6 +84,18 @@ impl Editor {
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
             Key::Up | Key::Down | Key::Left | Key::Right => self.move_cursor(pressed_key),
+            Key::Backspace => {
+                let x = self.cursor_position.x.saturating_sub(1);
+
+                self.file.delete(&Position {
+                    x,
+                    y: self.cursor_position.y,
+                });
+
+                if x != 0 {
+                    self.move_cursor(Key::Left);
+                }
+            }
             Key::Char(c) => {
                 self.file.insert(c, &self.cursor_position);
                 self.move_cursor(Key::Right);
