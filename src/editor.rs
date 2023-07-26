@@ -121,27 +121,41 @@ impl Editor {
     }
 
     fn move_cursor(&mut self, pressed_key: Key) {
-        let width = if let Some(row) = self.file.row(self.cursor_position.y) {
+        let x = &mut self.cursor_position.x;
+        let y = &mut self.cursor_position.y;
+
+        let height = self.file.len();
+        let mut width = if let Some(row) = self.file.row(*y) {
             row.len()
         } else {
             0
         };
 
         match pressed_key {
-            Key::Up => self.cursor_position.y = self.cursor_position.y.saturating_sub(1),
+            Key::Up => *y = y.saturating_sub(1),
             Key::Down => {
-                if self.cursor_position.y < self.file.len() as usize {
-                    self.cursor_position.y = self.cursor_position.y.saturating_add(1)
+                if *y < height as usize {
+                    *y = y.saturating_add(1)
                 }
             }
-            Key::Left => self.cursor_position.x = self.cursor_position.x.saturating_sub(1),
+            Key::Left => *x = x.saturating_sub(1),
             Key::Right => {
-                if self.cursor_position.x < width as usize {
-                    self.cursor_position.x = self.cursor_position.x.saturating_add(1)
+                if *x < width as usize {
+                    *x = x.saturating_add(1)
                 }
             }
             _ => unreachable!(),
         };
+
+        width = if let Some(row) = self.file.row(*y) {
+            row.len()
+        } else {
+            0
+        };
+
+        if *x > width {
+            *x = width;
+        }
     }
 
     fn draw_row(&self, row: &Row) {
