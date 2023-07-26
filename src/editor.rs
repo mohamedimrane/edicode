@@ -235,6 +235,10 @@ impl Editor {
 
     fn draw_status_bar(&self) {
         let width = self.terminal_size.0 as usize;
+        let mode = match self.mode {
+            Mode::Normal => "NORMAL",
+            Mode::Edit => "EDIT",
+        };
         let file_name = if let Some(name) = self.file.name.clone() {
             name
         } else {
@@ -248,15 +252,16 @@ impl Editor {
 
         let mut status = String::new();
 
-        // right side
-        status.push_str(&file_name);
+        let left_side = format!("{}   {}", mode, file_name);
+        let right_side = format!("{}", current_pos);
+
+        status.push_str(&left_side);
 
         // separator
-        let len = file_name.len() + current_pos.len() + 2; // +1 is the space at the start of the status bar
+        let len = left_side.len() + right_side.len() + 2; // +1 is the space at the start of the status bar
         status.push_str(&" ".repeat(width - len));
 
-        // left side
-        status.push_str(&current_pos);
+        status.push_str(&right_side);
 
         // spaces on the sides
         status.insert(0, ' ');
