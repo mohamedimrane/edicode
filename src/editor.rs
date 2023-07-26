@@ -91,6 +91,7 @@ impl Editor {
 
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
+            Key::Ctrl('s') => self.file.save().expect("Could not save file"),
             Key::Esc => self.mode = Mode::Normal,
             Key::Char('i') if self.mode == Mode::Normal => self.mode = Mode::Edit,
             Key::Char('k') | Key::Char('j') | Key::Char('h') | Key::Char('l')

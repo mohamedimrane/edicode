@@ -1,4 +1,7 @@
-use std::{fs, io, os::unix::prelude::FileExt};
+use std::{
+    fs,
+    io::{self, Write},
+};
 
 use crate::terminal_utils;
 
@@ -27,6 +30,18 @@ impl File {
             name: Some(file_name.to_string()),
             rows,
         })
+    }
+
+    pub fn save(&self) -> Result<(), io::Error> {
+        if let Some(name) = &self.name {
+            let mut file = fs::File::create(name)?;
+            for row in &self.rows {
+                file.write_all(row.as_bytes())?;
+                file.write_all(b"\n")?;
+            }
+        }
+
+        Ok(())
     }
 
     pub fn insert(&mut self, c: char, at: &crate::cursor::Position) {
@@ -128,6 +143,10 @@ impl Row {
 
     pub fn is_empty(&self) -> bool {
         self.string.is_empty()
+    }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        self.string.as_bytes()
     }
 }
 
