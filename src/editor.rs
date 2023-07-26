@@ -138,7 +138,19 @@ impl Editor {
                     *y = y.saturating_add(1)
                 }
             }
-            Key::Left => *x = x.saturating_sub(1),
+            Key::Left => {
+                if *x > 0 {
+                    *x -= 1;
+                } else if *y > 0 {
+                    *y -= 1;
+
+                    if let Some(row) = self.file.row(*y) {
+                        *x = row.len();
+                    } else {
+                        *x = 0;
+                    }
+                }
+            }
             Key::Right => {
                 if *x < width as usize {
                     *x = x.saturating_add(1)
