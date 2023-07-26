@@ -207,10 +207,27 @@ impl Editor {
         } else {
             "[scratch]".to_string()
         };
+        let current_pos = format!(
+            "{}:{}",
+            self.cursor_position.y + 1,
+            self.cursor_position.x + 1
+        );
 
-        let mut status = " ".to_string();
+        let mut status = String::new();
+
+        // right side
         status.push_str(&file_name);
-        status.push_str(&" ".repeat(width - status.len()));
+
+        // separator
+        let len = file_name.len() + current_pos.len() + 2; // +1 is the space at the start of the status bar
+        status.push_str(&" ".repeat(width - len));
+
+        // left side
+        status.push_str(&current_pos);
+
+        // spaces on the sides
+        status.insert(0, ' ');
+        status.insert(status.len(), ' ');
 
         termutils::set_bg_color(STATUS_BAR_BG_COLOR);
         termutils::set_fg_color(STATUS_BAR_FG_COLOR);
