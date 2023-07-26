@@ -7,6 +7,8 @@ use std::io::{self, Write};
 use termion::{event::Key, input::TermRead};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+const STATUS_BAR_BG_COLOR: termion::color::Rgb = termion::color::Rgb(0, 50, 100);
+const STATUS_BAR_FG_COLOR: termion::color::Rgb = termion::color::Rgb(255, 255, 255);
 
 pub struct Editor {
     file: File,
@@ -18,6 +20,9 @@ pub struct Editor {
 
 impl Default for Editor {
     fn default() -> Self {
+        let mut terminal_size = termion::terminal_size().unwrap();
+        terminal_size.1 -= 2;
+
         Self {
             file: {
                 let args: Vec<String> = std::env::args().collect();
@@ -28,7 +33,7 @@ impl Default for Editor {
                     File::default()
                 }
             },
-            terminal_size: termion::terminal_size().unwrap(),
+            terminal_size,
             cursor_position: Position::default(),
             offset: Position::default(),
             should_quit: false,
@@ -62,6 +67,7 @@ impl Editor {
             println!("exited");
         } else {
             self.draw_rows();
+            self.draw_status_bar();
             termutils::set_cursor_position(&Position {
                 x: self.cursor_position.x.saturating_sub(self.offset.x),
                 y: self.cursor_position.y.saturating_sub(self.offset.y),
@@ -181,7 +187,7 @@ impl Editor {
     }
 
     fn draw_rows(&self) {
-        for terminal_row in 0..self.terminal_size.1 - 1 {
+        for terminal_row in 0..self.terminal_size.1 {
             termutils::clear_line();
 
             if let Some(row) = self.file.row(terminal_row as usize + self.offset.y) {
@@ -192,6 +198,21 @@ impl Editor {
                 println!("~\r");
             }
         }
+    }
+
+    fn draw_status_bar(&self) {
+        let width = self.terminal_size.0 as usize;
+
+        let mut status = "Status bar".to_string();
+        status.push_str(&" ".repeat(width - status.len()));
+
+        termutils::set_bg_color(STATUS_BAR_BG_COLOR);
+        termutils::set_fg_color(STATUS_BAR_FG_COLOR);
+
+        println!("{}\r", status);
+
+        termutils::reset_bg_color();
+        termutils::reset_fg_color();
     }
 
     fn draw_welcome_message(&self) {
