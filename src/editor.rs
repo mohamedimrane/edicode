@@ -86,15 +86,15 @@ impl Editor {
             Key::Up | Key::Down | Key::Left | Key::Right => self.move_cursor(pressed_key),
             Key::Backspace => {
                 let x = self.cursor_position.x.saturating_sub(1);
+                let y = self.cursor_position.y;
 
-                self.file.delete(&Position {
-                    x,
-                    y: self.cursor_position.y,
-                });
-
-                if x != 0 {
+                if x == 0 {
+                    self.cursor_position.y -= 1;
+                    self.cursor_position.x = self.file.row(y - 1).unwrap().len();
+                } else {
                     self.move_cursor(Key::Left);
                 }
+                self.file.delete(&Position { x, y });
             }
             Key::Char(c) => {
                 self.file.insert(c, &self.cursor_position);

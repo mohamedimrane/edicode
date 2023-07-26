@@ -40,8 +40,21 @@ impl File {
     }
 
     pub fn delete(&mut self, at: &crate::cursor::Position) {
-        if at.y >= self.len() {
-            terminal_utils::set_bg_color(termion::color::Rgb(100, 100, 100));
+        if at.y >= self.len() || (at.x == 0 && at.y == 0) {
+            return;
+        }
+
+        if at.x == 0 {
+            let string = self.row(at.y).unwrap().string.clone();
+
+            self.rows
+                .get_mut(at.y - 1)
+                .unwrap()
+                .string
+                .push_str(&string);
+
+            self.rows.remove(at.y);
+
             return;
         }
 
