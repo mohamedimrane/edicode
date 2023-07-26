@@ -84,6 +84,10 @@ impl Editor {
         match pressed_key {
             Key::Ctrl('q') => self.should_quit = true,
             Key::Up | Key::Down | Key::Left | Key::Right => self.move_cursor(pressed_key),
+            Key::Char(c) => {
+                self.file.insert(c, &self.cursor_position);
+                self.move_cursor(Key::Right);
+            }
             _ => (),
         };
 
