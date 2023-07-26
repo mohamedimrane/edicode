@@ -202,8 +202,14 @@ impl Editor {
 
     fn draw_status_bar(&self) {
         let width = self.terminal_size.0 as usize;
+        let file_name = if let Some(name) = self.file.name.clone() {
+            name
+        } else {
+            "[scratch]".to_string()
+        };
 
-        let mut status = "Status bar".to_string();
+        let mut status = " ".to_string();
+        status.push_str(&file_name);
         status.push_str(&" ".repeat(width - status.len()));
 
         termutils::set_bg_color(STATUS_BAR_BG_COLOR);

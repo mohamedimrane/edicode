@@ -2,6 +2,7 @@ use std::{fs, io};
 
 #[derive(Default)]
 pub struct File {
+    pub name: Option<String>,
     rows: Vec<Row>,
 }
 
@@ -20,7 +21,10 @@ impl File {
             rows.push(Row::from(value));
         }
 
-        Ok(Self { rows })
+        Ok(Self {
+            name: Some(file_name.to_string()),
+            rows,
+        })
     }
 
     pub fn row(&self, index: usize) -> Option<&Row> {
