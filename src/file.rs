@@ -1,4 +1,4 @@
-use std::{fs, io};
+use std::{fs, io, os::unix::prelude::FileExt};
 
 use crate::terminal_utils;
 
@@ -30,6 +30,11 @@ impl File {
     }
 
     pub fn insert(&mut self, c: char, at: &crate::cursor::Position) {
+        if c == '\n' {
+            self.insert_newline(at);
+            return;
+        }
+
         if at.y == self.len() {
             let mut row = Row::default();
             row.insert(0, c);
@@ -55,6 +60,21 @@ impl File {
         }
 
         self.row_mut(at.y).unwrap().delete(at.x);
+    }
+
+    pub fn insert_newline(&mut self, at: &crate::cursor::Position) {
+        if let Some(row) = self.row(at.y) {
+            if at.x == row.len() {
+                self.rows.insert(at.y + 1, Row::default());
+            } else {
+                let row = self.row_mut(at.y).unwrap();
+                let new_row = Row::from(&row.string[at.x..]);
+                row.string = row.string[..at.x].to_string();
+                self.rows.insert(at.y + 1, new_row);
+            }
+        } else {
+            self.rows.push(Row::default());
+        }
     }
 
     pub fn row(&self, index: usize) -> Option<&Row> {
