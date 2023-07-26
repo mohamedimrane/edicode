@@ -25,3 +25,19 @@ pub fn clear() {
 pub fn clear_line() {
     print!("{}", termion::clear::CurrentLine);
 }
+
+pub fn set_bg_color(color: termion::color::Rgb) {
+    print!("{}", termion::color::Bg(color));
+}
+
+pub fn reset_bg_color() {
+    print!("{}", termion::color::Bg(termion::color::Reset));
+}
+
+pub fn set_fg_color(color: termion::color::Rgb) {
+    print!("{}", termion::color::Fg(color));
+}
+
+pub fn reset_fg_color() {
+    print!("{}", termion::color::Fg(termion::color::Reset));
+}
