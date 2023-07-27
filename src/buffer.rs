@@ -4,7 +4,7 @@ use std::{
 };
 
 #[derive(Default)]
-pub struct File {
+pub struct Buffer {
     pub name: Option<String>,
     rows: Vec<Row>,
     dirty: bool,
@@ -15,7 +15,7 @@ pub struct Row {
     string: String,
 }
 
-impl File {
+impl Buffer {
     pub fn open(file_name: &str) -> Result<Self, io::Error> {
         let contents = fs::read_to_string(file_name)?;
 

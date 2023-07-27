@@ -1,6 +1,6 @@
 use crate::{
+    buffer::{Buffer, Row},
     cursor::Position,
-    file::{File, Row},
     terminal_utils as termutils,
 };
 use std::io::{self, Write};
@@ -17,7 +17,7 @@ enum Mode {
 }
 
 pub struct Editor {
-    file: File,
+    file: Buffer,
     terminal_size: (u16, u16),
     mode: Mode,
     command_bar_text: String,
@@ -36,9 +36,9 @@ impl Default for Editor {
                 let args: Vec<String> = std::env::args().collect();
 
                 if args.len() > 1 {
-                    File::open(&args[1]).unwrap_or_default()
+                    Buffer::open(&args[1]).unwrap_or_default()
                 } else {
-                    File::default()
+                    Buffer::default()
                 }
             },
             terminal_size,

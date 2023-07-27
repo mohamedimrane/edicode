@@ -2,9 +2,9 @@ use editor::Editor;
 use std::io;
 use termion::raw::IntoRawMode;
 
+mod buffer;
 mod cursor;
 mod editor;
-mod file;
 mod terminal_utils;
 
 fn main() {
