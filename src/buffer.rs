@@ -32,13 +32,11 @@ impl Buffer {
         })
     }
 
-    pub fn save(&mut self) -> Result<(), io::Error> {
-        if let Some(name) = &self.name {
-            let mut file = fs::File::create(name)?;
-            for row in &self.rows {
-                file.write_all(row.as_bytes())?;
-                file.write_all(b"\n")?;
-            }
+    pub fn save(&mut self, save_location: &str) -> Result<(), io::Error> {
+        let mut file = fs::File::create(save_location)?;
+        for row in &self.rows {
+            file.write_all(row.as_bytes())?;
+            file.write_all(b"\n")?;
         }
 
         self.dirty = false;
