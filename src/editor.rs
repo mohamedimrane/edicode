@@ -92,6 +92,8 @@ impl Editor {
     fn process_keypress(&mut self) -> Result<(), io::Error> {
         let pressed_key = Editor::read_key()?;
 
+        self.prompt_bar_text = "".to_string();
+
         match pressed_key {
             // non mode specific
             Key::Esc => self.mode = Mode::Normal,
@@ -138,13 +140,18 @@ impl Editor {
     fn process_command(&mut self, command: String) -> Result<(), io::Error> {
         let command = command.split(' ').collect::<Vec<&str>>();
         match command[0] {
-            "w" => self.buffer.save(),
+            "w" => {
+                self.buffer.save()?;
+                self.prompt_bar_text = format!("\"{}\" written", self.buffer.name.clone().unwrap());
+                Ok(())
+            }
             "q" => {
                 self.should_quit = true;
                 Ok(())
             }
             "wq" | "x" => {
                 self.buffer.save()?;
+                self.prompt_bar_text = format!("\"{}\" written", self.buffer.name.clone().unwrap());
                 self.should_quit = true;
                 Ok(())
             }
