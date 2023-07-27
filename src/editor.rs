@@ -141,7 +141,7 @@ impl Editor {
         let command = command.split(' ').collect::<Vec<&str>>();
         match command[0] {
             "w" => {
-                let mut save_location = self.buffer.name.clone().unwrap_or_default();
+                let mut save_location = self.buffer.save_location.clone().unwrap_or_default();
                 if let Some(new_save_location) = command.get(1).copied() {
                     save_location = new_save_location.to_string();
                 }
@@ -160,7 +160,7 @@ impl Editor {
                 Ok(())
             }
             "wq" | "x" => {
-                let mut save_location = self.buffer.name.clone().unwrap_or_default();
+                let mut save_location = self.buffer.save_location.clone().unwrap_or_default();
                 if let Some(new_save_location) = command.get(1).copied() {
                     save_location = new_save_location.to_string();
                 }
@@ -329,7 +329,7 @@ impl Editor {
             Mode::Normal => "NORMAL",
             Mode::Insert => "INSERT",
         };
-        let file_name = if let Some(name) = self.buffer.name.clone() {
+        let file_name = if let Some(name) = self.buffer.save_location.clone() {
             name
         } else {
             "[scratch]".to_string()

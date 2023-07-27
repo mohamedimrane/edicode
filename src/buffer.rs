@@ -5,7 +5,7 @@ use std::{
 
 #[derive(Default)]
 pub struct Buffer {
-    pub name: Option<String>,
+    pub save_location: Option<String>,
     rows: Vec<Row>,
     dirty: bool,
 }
@@ -26,7 +26,7 @@ impl Buffer {
         }
 
         Ok(Self {
-            name: Some(file_name.to_string()),
+            save_location: Some(file_name.to_string()),
             rows,
             dirty: false,
         })
