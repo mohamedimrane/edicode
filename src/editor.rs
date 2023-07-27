@@ -175,7 +175,13 @@ impl Editor {
                         result.push(c);
                     }
                 }
-                Key::Esc => result.truncate(0),
+                Key::Backspace => {
+                    result.pop();
+                }
+                Key::Esc => {
+                    result.truncate(0);
+                    break;
+                }
                 _ => (),
             }
         }
