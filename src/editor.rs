@@ -20,7 +20,7 @@ pub struct Editor {
     buffer: Buffer,
     terminal_size: (u16, u16),
     mode: Mode,
-    command_bar_text: String,
+    prompt_bar_text: String,
     cursor_position: Position,
     offset: Position,
     should_quit: bool,
@@ -43,7 +43,7 @@ impl Default for Editor {
             },
             terminal_size,
             mode: Mode::Normal,
-            command_bar_text: String::new(),
+            prompt_bar_text: String::new(),
             cursor_position: Position::default(),
             offset: Position::default(),
             should_quit: false,
@@ -164,7 +164,7 @@ impl Editor {
         let mut result = String::new();
 
         loop {
-            self.command_bar_text = format!("{}{}", prompt, result);
+            self.prompt_bar_text = format!("{}{}", prompt, result);
 
             self.refresh_screen()?;
 
@@ -186,7 +186,7 @@ impl Editor {
             }
         }
 
-        self.command_bar_text = String::new();
+        self.prompt_bar_text = String::new();
 
         if result.is_empty() {
             return Ok(None);
@@ -341,7 +341,7 @@ impl Editor {
 
     fn draw_command_bar(&self) {
         termutils::clear_line();
-        println!("{}", self.command_bar_text);
+        println!("{}", self.prompt_bar_text);
     }
 
     fn draw_welcome_message(&self) {
