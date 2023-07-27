@@ -94,15 +94,13 @@ impl Editor {
 
         match pressed_key {
             // non mode specific
-            Key::Ctrl('q') => self.should_quit = true,
-            Key::Ctrl('s') => self.file.save().expect("Could not save file"),
             Key::Esc => self.mode = Mode::Normal,
             Key::Up | Key::Down | Key::Left | Key::Right => self.move_cursor(pressed_key),
 
             // normal mode specific
             Key::Char(':') if self.mode == Mode::Normal => {
                 if let Ok(Some(command)) = self.prompt(":") {
-                    self.process_command(command);
+                    self.process_command(command)?;
                 }
             }
             Key::Char('i') if self.mode == Mode::Normal => self.mode = Mode::Insert,
@@ -137,7 +135,22 @@ impl Editor {
         Ok(())
     }
 
-    fn process_command(&self, command: String) {}
+    fn process_command(&mut self, command: String) -> Result<(), io::Error> {
+        let command = command.split(' ').collect::<Vec<&str>>();
+        match command[0] {
+            "w" => self.file.save(),
+            "q" => {
+                self.should_quit = true;
+                Ok(())
+            }
+            "wq" | "x" => {
+                self.file.save()?;
+                self.should_quit = true;
+                Ok(())
+            }
+            _ => Ok(()),
+        }
+    }
 
     fn read_key() -> Result<Key, io::Error> {
         loop {
