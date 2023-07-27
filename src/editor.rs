@@ -17,7 +17,7 @@ enum Mode {
 }
 
 pub struct Editor {
-    file: Buffer,
+    buffer: Buffer,
     terminal_size: (u16, u16),
     mode: Mode,
     command_bar_text: String,
@@ -32,7 +32,7 @@ impl Default for Editor {
         terminal_size.1 -= 3;
 
         Self {
-            file: {
+            buffer: {
                 let args: Vec<String> = std::env::args().collect();
 
                 if args.len() > 1 {
@@ -117,14 +117,14 @@ impl Editor {
 
                 if x == 0 {
                     self.cursor_position.y -= 1;
-                    self.cursor_position.x = self.file.row(y - 1).unwrap().len();
+                    self.cursor_position.x = self.buffer.row(y - 1).unwrap().len();
                 } else {
                     self.move_cursor(Key::Left);
                 }
-                self.file.delete(&Position { x, y });
+                self.buffer.delete(&Position { x, y });
             }
             Key::Char(c) if self.mode == Mode::Insert => {
-                self.file.insert(c, &self.cursor_position);
+                self.buffer.insert(c, &self.cursor_position);
                 self.move_cursor(Key::Right);
             }
             _ => (),
@@ -138,13 +138,13 @@ impl Editor {
     fn process_command(&mut self, command: String) -> Result<(), io::Error> {
         let command = command.split(' ').collect::<Vec<&str>>();
         match command[0] {
-            "w" => self.file.save(),
+            "w" => self.buffer.save(),
             "q" => {
                 self.should_quit = true;
                 Ok(())
             }
             "wq" | "x" => {
-                self.file.save()?;
+                self.buffer.save()?;
                 self.should_quit = true;
                 Ok(())
             }
@@ -225,8 +225,8 @@ impl Editor {
         let x = &mut self.cursor_position.x;
         let y = &mut self.cursor_position.y;
 
-        let height = self.file.len();
-        let mut width = if let Some(row) = self.file.row(*y) {
+        let height = self.buffer.len();
+        let mut width = if let Some(row) = self.buffer.row(*y) {
             row.len()
         } else {
             0
@@ -245,7 +245,7 @@ impl Editor {
                 } else if *y > 0 {
                     *y -= 1;
 
-                    if let Some(row) = self.file.row(*y) {
+                    if let Some(row) = self.buffer.row(*y) {
                         *x = row.len();
                     } else {
                         *x = 0;
@@ -263,7 +263,7 @@ impl Editor {
             _ => unreachable!(),
         };
 
-        width = if let Some(row) = self.file.row(*y) {
+        width = if let Some(row) = self.buffer.row(*y) {
             row.len()
         } else {
             0
@@ -285,9 +285,9 @@ impl Editor {
         for terminal_row in 0..self.terminal_size.1 {
             termutils::clear_line();
 
-            if let Some(row) = self.file.row(terminal_row as usize + self.offset.y) {
+            if let Some(row) = self.buffer.row(terminal_row as usize + self.offset.y) {
                 self.draw_row(row);
-            } else if self.file.is_empty() && terminal_row == self.terminal_size.1 / 3 {
+            } else if self.buffer.is_empty() && terminal_row == self.terminal_size.1 / 3 {
                 self.draw_welcome_message();
             } else {
                 println!("~\r");
@@ -301,12 +301,12 @@ impl Editor {
             Mode::Normal => "NORMAL",
             Mode::Insert => "INSERT",
         };
-        let file_name = if let Some(name) = self.file.name.clone() {
+        let file_name = if let Some(name) = self.buffer.name.clone() {
             name
         } else {
             "[scratch]".to_string()
         };
-        let is_dirty = if self.file.is_dirty() { "[+]" } else { "" };
+        let is_dirty = if self.buffer.is_dirty() { "[+]" } else { "" };
         let current_pos = format!(
             "{}:{}",
             self.cursor_position.y + 1,
