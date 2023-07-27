@@ -81,15 +81,17 @@ impl File {
         if let Some(row) = self.row(at.y) {
             if at.x == row.len() {
                 self.rows.insert(at.y + 1, Row::default());
-            } else {
-                let row = self.row_mut(at.y).unwrap();
-                let new_row = Row::from(&row.string[at.x..]);
-                row.string = row.string[..at.x].to_string();
-                self.rows.insert(at.y + 1, new_row);
+                return;
             }
-        } else {
-            self.rows.push(Row::default());
+
+            let row = self.row_mut(at.y).unwrap();
+            let new_row = Row::from(&row.string[at.x..]);
+            row.string = row.string[..at.x].to_string();
+            self.rows.insert(at.y + 1, new_row);
+            return;
         }
+
+        self.rows.push(Row::default());
     }
 
     pub fn row(&self, index: usize) -> Option<&Row> {
@@ -119,9 +121,10 @@ impl Row {
     pub fn insert(&mut self, at: usize, c: char) {
         if at >= self.len() {
             self.string.push(c);
-        } else {
-            self.string.insert(at, c);
+            return;
         }
+
+        self.string.insert(at, c);
     }
 
     pub fn delete(&mut self, at: usize) {
