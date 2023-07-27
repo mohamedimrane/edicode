@@ -7,6 +7,7 @@ use std::{
 pub struct File {
     pub name: Option<String>,
     rows: Vec<Row>,
+    dirty: bool,
 }
 
 #[derive(Default)]
@@ -27,10 +28,11 @@ impl File {
         Ok(Self {
             name: Some(file_name.to_string()),
             rows,
+            dirty: false,
         })
     }
 
-    pub fn save(&self) -> Result<(), io::Error> {
+    pub fn save(&mut self) -> Result<(), io::Error> {
         if let Some(name) = &self.name {
             let mut file = fs::File::create(name)?;
             for row in &self.rows {
@@ -38,6 +40,8 @@ impl File {
                 file.write_all(b"\n")?;
             }
         }
+
+        self.dirty = false;
 
         Ok(())
     }
@@ -57,6 +61,8 @@ impl File {
             std::cmp::Ordering::Less => self.row_mut(at.y).unwrap().insert(at.x, c),
             _ => (),
         }
+
+        self.dirty = true;
     }
 
     pub fn delete(&mut self, at: &crate::cursor::Position) {
@@ -75,6 +81,8 @@ impl File {
         }
 
         self.row_mut(at.y).unwrap().delete(at.x);
+
+        self.dirty = true;
     }
 
     pub fn insert_newline(&mut self, at: &crate::cursor::Position) {
@@ -92,6 +100,8 @@ impl File {
         }
 
         self.rows.push(Row::default());
+
+        self.dirty = true;
     }
 
     pub fn row(&self, index: usize) -> Option<&Row> {
@@ -100,6 +110,10 @@ impl File {
 
     pub fn row_mut(&mut self, index: usize) -> Option<&mut Row> {
         self.rows.get_mut(index)
+    }
+
+    pub fn is_dirty(&self) -> bool {
+        self.dirty
     }
 
     pub fn is_empty(&self) -> bool {

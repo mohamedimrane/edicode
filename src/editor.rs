@@ -306,6 +306,7 @@ impl Editor {
         } else {
             "[scratch]".to_string()
         };
+        let is_dirty = if self.file.is_dirty() { "[+]" } else { "" };
         let current_pos = format!(
             "{}:{}",
             self.cursor_position.y + 1,
@@ -314,7 +315,7 @@ impl Editor {
 
         let mut status = String::new();
 
-        let left_side = format!("{}   {}", mode, file_name);
+        let left_side = format!("{}   {} {}", mode, file_name, is_dirty);
         let right_side = format!("{}", current_pos);
 
         status.push_str(&left_side);
