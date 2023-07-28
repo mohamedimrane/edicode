@@ -12,6 +12,20 @@ impl Message {
     pub fn new(kind: MessageType, message: String) -> Self {
         Self { kind, message }
     }
+
+    pub fn new_normal(message: String) -> Self {
+        Self {
+            kind: MessageType::Normal,
+            message,
+        }
+    }
+
+    pub fn new_error(message: String) -> Self {
+        Self {
+            kind: MessageType::Error,
+            message,
+        }
+    }
 }
 
 impl Default for Message {

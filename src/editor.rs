@@ -160,10 +160,8 @@ impl Editor {
                 Ok(())
             }
             _ => {
-                self.prompt_bar_message = Message::new(
-                    MessageType::Error,
-                    format!("Unknown command: {}", command[0]),
-                );
+                self.prompt_bar_message =
+                    Message::new_error(format!("Unknown command: {}", command[0]));
                 Ok(())
             }
         }
@@ -181,8 +179,7 @@ impl Editor {
         let mut result = String::new();
 
         loop {
-            self.prompt_bar_message =
-                Message::new(MessageType::Normal, format!("{}{}", prompt, result));
+            self.prompt_bar_message = Message::new_normal(format!("{}{}", prompt, result));
 
             self.refresh_screen()?;
 
@@ -381,18 +378,13 @@ impl Editor {
         }
 
         if save_location.is_empty() {
-            self.prompt_bar_message = Message::new(
-                MessageType::Error,
-                "Can't save with no path set!".to_string(),
-            );
+            self.prompt_bar_message =
+                Message::new_error("Can't save with no path set!".to_string());
             return Ok(());
         }
 
         self.buffer.save(&save_location)?;
-        self.prompt_bar_message = Message::new(
-            MessageType::Normal,
-            format!("\"{}\" written", save_location),
-        );
+        self.prompt_bar_message = Message::new_normal(format!("\"{}\" written", save_location));
 
         Ok(())
     }
