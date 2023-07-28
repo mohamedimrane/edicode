@@ -21,7 +21,7 @@ pub struct Editor {
     buffer: Buffer,
     terminal_size: (u16, u16),
     mode: Mode,
-    prompt_bar_text: Message,
+    prompt_bar_message: Message,
     cursor_position: Position,
     offset: Position,
     should_quit: bool,
@@ -44,7 +44,7 @@ impl Default for Editor {
             },
             terminal_size,
             mode: Mode::Normal,
-            prompt_bar_text: Message::default(),
+            prompt_bar_message: Message::default(),
             cursor_position: Position::default(),
             offset: Position::default(),
             should_quit: false,
@@ -93,7 +93,7 @@ impl Editor {
     fn process_keypress(&mut self) -> Result<(), io::Error> {
         let pressed_key = Editor::read_key()?;
 
-        self.prompt_bar_text = Message::default();
+        self.prompt_bar_message = Message::default();
 
         match pressed_key {
             // non mode specific
@@ -160,7 +160,7 @@ impl Editor {
                 Ok(())
             }
             _ => {
-                self.prompt_bar_text = Message::new(
+                self.prompt_bar_message = Message::new(
                     MessageType::Error,
                     format!("Unknown command: {}", command[0]),
                 );
@@ -181,7 +181,7 @@ impl Editor {
         let mut result = String::new();
 
         loop {
-            self.prompt_bar_text =
+            self.prompt_bar_message =
                 Message::new(MessageType::Normal, format!("{}{}", prompt, result));
 
             self.refresh_screen()?;
@@ -204,7 +204,7 @@ impl Editor {
             }
         }
 
-        self.prompt_bar_text = Message::default();
+        self.prompt_bar_message = Message::default();
 
         if result.is_empty() {
             return Ok(None);
@@ -359,7 +359,7 @@ impl Editor {
 
     fn draw_command_bar(&self) {
         termutils::clear_line();
-        println!("{}", self.prompt_bar_text);
+        println!("{}", self.prompt_bar_message);
     }
 
     fn draw_welcome_message(&self) {
@@ -381,7 +381,7 @@ impl Editor {
         }
 
         if save_location.is_empty() {
-            self.prompt_bar_text = Message::new(
+            self.prompt_bar_message = Message::new(
                 MessageType::Error,
                 "Can't save with no path set!".to_string(),
             );
@@ -389,7 +389,7 @@ impl Editor {
         }
 
         self.buffer.save(&save_location)?;
-        self.prompt_bar_text = Message::new(
+        self.prompt_bar_message = Message::new(
             MessageType::Normal,
             format!("\"{}\" written", save_location),
         );
