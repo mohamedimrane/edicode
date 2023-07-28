@@ -118,18 +118,17 @@ impl Editor {
                 let x = self.cursor_position.x;
                 let y = self.cursor_position.y;
 
-                if x == 0 && y == 0 {
-                    // return
-                }
+                if !(x == 0 && y == 0) {
+                    if x == 0 {
+                        self.cursor_position.y = y.saturating_sub(1);
+                        self.cursor_position.x =
+                            self.buffer.row(y.saturating_sub(1)).unwrap().len();
+                    } else {
+                        self.move_cursor(Key::Left);
+                    }
 
-                if x == 0 {
-                    self.cursor_position.y = y.saturating_sub(1);
-                    self.cursor_position.x = self.buffer.row(y.saturating_sub(1)).unwrap().len();
-                } else {
-                    self.move_cursor(Key::Left);
+                    self.buffer.delete(&Position { x, y });
                 }
-
-                self.buffer.delete(&Position { x, y });
             }
             Key::Char(c) if self.mode == Mode::Insert => {
                 self.buffer.insert(c, &self.cursor_position);
