@@ -162,6 +162,10 @@ impl Editor {
                 self.command_new_buffer(&command)?;
                 Ok(())
             }
+            "o" => {
+                self.command_open_file(&command)?;
+                Ok(())
+            }
             "" => Ok(()),
             _ => {
                 self.prompt_bar_message =
@@ -402,6 +406,25 @@ impl Editor {
         let new_buffer = Buffer::default();
         self.cursor_position = Position::default();
         self.buffer = new_buffer;
+        Ok(())
+    }
+
+    fn command_open_file(&mut self, command: &Vec<&str>) -> Result<(), io::Error> {
+        if let Some(file_location) = command.get(1) {
+            self.buffer = match Buffer::open(file_location) {
+                Ok(buffer) => buffer,
+                Err(e) => match e.kind() {
+                    io::ErrorKind::NotFound => {
+                        self.prompt_bar_message = Message::new_error(e.to_string());
+                        return Ok(());
+                    }
+                    _ => return Result::Err(e),
+                },
+            };
+        } else {
+            self.prompt_bar_message = Message::new_error("File path not given!".to_string());
+        }
+
         Ok(())
     }
 }
