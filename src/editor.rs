@@ -158,6 +158,10 @@ impl Editor {
                 self.command_quit(&command)?;
                 Ok(())
             }
+            "n" => {
+                self.command_new_buffer(&command)?;
+                Ok(())
+            }
             "" => Ok(()),
             _ => {
                 self.prompt_bar_message =
@@ -391,6 +395,13 @@ impl Editor {
 
     fn command_quit(&mut self, _command: &Vec<&str>) -> Result<(), io::Error> {
         self.should_quit = true;
+        Ok(())
+    }
+
+    fn command_new_buffer(&mut self, _command: &Vec<&str>) -> Result<(), io::Error> {
+        let new_buffer = Buffer::default();
+        self.cursor_position = Position::default();
+        self.buffer = new_buffer;
         Ok(())
     }
 }
