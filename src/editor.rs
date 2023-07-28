@@ -1,7 +1,7 @@
 use crate::{
     buffer::{Buffer, Row},
     cursor::Position,
-    message::{Message, MessageType},
+    message::Message,
     terminal_utils as termutils,
 };
 use std::io::{self, Write};
@@ -388,7 +388,7 @@ impl Editor {
         Ok(())
     }
 
-    fn command_quit(&mut self, command: &Vec<&str>) -> Result<(), io::Error> {
+    fn command_quit(&mut self, _command: &Vec<&str>) -> Result<(), io::Error> {
         self.should_quit = true;
         Ok(())
     }
