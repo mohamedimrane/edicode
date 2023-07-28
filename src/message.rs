@@ -14,6 +14,15 @@ impl Message {
     }
 }
 
+impl Default for Message {
+    fn default() -> Self {
+        Self {
+            kind: MessageType::Normal,
+            message: String::new(),
+        }
+    }
+}
+
 impl std::fmt::Display for Message {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use termion::color::{Fg, Reset, Rgb};
