@@ -76,9 +76,10 @@ impl Buffer {
             self.rows.remove(at.y);
 
             return;
+        } else {
+            // let x = at.x.saturating_sub(1);
+            self.row_mut(at.y).unwrap().delete(at.x.saturating_sub(1));
         }
-
-        self.row_mut(at.y).unwrap().delete(at.x);
 
         self.dirty = true;
     }
@@ -140,7 +141,7 @@ impl Row {
     }
 
     pub fn delete(&mut self, at: usize) {
-        if at >= self.len() || at == 0 {
+        if at >= self.len() {
             return;
         }
 
