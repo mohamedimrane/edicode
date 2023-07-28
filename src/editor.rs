@@ -7,7 +7,7 @@ use std::io::{self, Write};
 use termion::{event::Key, input::TermRead};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-const STATUS_BAR_BG_COLOR: termion::color::Rgb = termion::color::Rgb(0, 50, 100);
+const STATUS_BAR_BG_COLOR: termion::color::Rgb = termion::color::Rgb(52, 120, 198);
 const STATUS_BAR_FG_COLOR: termion::color::Rgb = termion::color::Rgb(255, 255, 255);
 
 #[derive(PartialEq, Eq)]
