@@ -1,6 +1,6 @@
-pub struct Message<'a> {
+pub struct Message {
     kind: MessageType,
-    message: &'a str,
+    message: String,
 }
 
 pub enum MessageType {
@@ -8,13 +8,13 @@ pub enum MessageType {
     Error,
 }
 
-impl<'a> Message<'a> {
-    pub fn new(kind: MessageType, message: &'a str) -> Self {
+impl Message {
+    pub fn new(kind: MessageType, message: String) -> Self {
         Self { kind, message }
     }
 }
 
-impl<'a> std::fmt::Display for Message<'_> {
+impl std::fmt::Display for Message {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use termion::color::{Fg, Reset, Rgb};
         use MessageType::*;
