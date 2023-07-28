@@ -372,6 +372,7 @@ impl Editor {
         let mut save_location = self.buffer.save_location.clone().unwrap_or_default();
         if let Some(new_save_location) = command.get(1).copied() {
             save_location = new_save_location.to_string();
+            self.buffer.save_location = Some(save_location.clone());
         }
 
         if save_location.is_empty() {
