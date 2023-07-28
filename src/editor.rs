@@ -158,6 +158,7 @@ impl Editor {
                 self.command_quit(&command)?;
                 Ok(())
             }
+            "" => Ok(()),
             _ => {
                 self.prompt_bar_message =
                     Message::new_error(format!("Unknown command: {}", command[0]));
