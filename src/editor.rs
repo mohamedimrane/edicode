@@ -146,42 +146,22 @@ impl Editor {
         let command = command.split(' ').collect::<Vec<&str>>();
         match command[0] {
             "w" => {
-                let mut save_location = self.buffer.save_location.clone().unwrap_or_default();
-                if let Some(new_save_location) = command.get(1).copied() {
-                    save_location = new_save_location.to_string();
-                }
-
-                if save_location.is_empty() {
-                    self.prompt_bar_text = "Can't save with no path set!".to_string();
-                    return Ok(());
-                }
-
-                self.buffer.save(&save_location)?;
-                self.prompt_bar_text = format!("\"{}\" written", save_location);
+                self.command_save_file(&command)?;
                 Ok(())
             }
             "q" => {
-                self.should_quit = true;
+                self.command_quit(&command)?;
                 Ok(())
             }
             "wq" | "x" => {
-                let mut save_location = self.buffer.save_location.clone().unwrap_or_default();
-                if let Some(new_save_location) = command.get(1).copied() {
-                    save_location = new_save_location.to_string();
-                }
-
-                if save_location.is_empty() {
-                    self.prompt_bar_text = "Can't save with no path set!".to_string();
-                    return Ok(());
-                }
-
-                self.buffer.save(&save_location)?;
-                self.prompt_bar_text = format!("\"{}\" written", save_location);
-
-                self.should_quit = true;
+                self.command_save_file(&command)?;
+                self.command_quit(&command)?;
                 Ok(())
             }
-            _ => Ok(()),
+            _ => {
+                self.prompt_bar_text = format!("Unknown command: {}", command[0]);
+                Ok(())
+            }
         }
     }
 
@@ -386,6 +366,28 @@ impl Editor {
         welcome_message = format!("~{}{}", spaces, welcome_message);
         welcome_message.truncate(width);
         println!("{}\r", welcome_message);
+    }
+
+    fn command_save_file(&mut self, command: &Vec<&str>) -> Result<(), io::Error> {
+        let mut save_location = self.buffer.save_location.clone().unwrap_or_default();
+        if let Some(new_save_location) = command.get(1).copied() {
+            save_location = new_save_location.to_string();
+        }
+
+        if save_location.is_empty() {
+            self.prompt_bar_text = "Can't save with no path set!".to_string();
+            return Ok(());
+        }
+
+        self.buffer.save(&save_location)?;
+        self.prompt_bar_text = format!("\"{}\" written", save_location);
+
+        Ok(())
+    }
+
+    fn command_quit(&mut self, command: &Vec<&str>) -> Result<(), io::Error> {
+        self.should_quit = true;
+        Ok(())
     }
 }
 
