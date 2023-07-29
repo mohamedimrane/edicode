@@ -1,9 +1,9 @@
+use crate::highlighting::HighlightType;
+use crate::terminal_utils::color_fg;
 use std::{
     fs,
     io::{self, Write},
 };
-
-use crate::terminal_utils as termutils;
 
 #[derive(Default)]
 pub struct Buffer {
@@ -15,6 +15,7 @@ pub struct Buffer {
 #[derive(Default)]
 pub struct Row {
     string: String,
+    highlighting: Vec<HighlightType>,
 }
 
 impl Buffer {
@@ -24,7 +25,9 @@ impl Buffer {
         let mut rows = Vec::new();
 
         for value in contents.lines() {
-            rows.push(Row::from(value));
+            let mut row = Row::from(value);
+            row.highlight();
+            rows.push(row);
         }
 
         Ok(Self {
@@ -62,6 +65,7 @@ impl Buffer {
             _ => (),
         }
 
+        self.row_mut(at.y).unwrap().highlight();
         self.dirty = true;
     }
 
@@ -72,6 +76,7 @@ impl Buffer {
 
         if !backspace {
             self.row_mut(at.y).unwrap().delete(at.x);
+            self.row_mut(at.y).unwrap().highlight();
             return;
         }
 
@@ -91,6 +96,8 @@ impl Buffer {
             self.row_mut(at.y).unwrap().delete(at.x.saturating_sub(1));
         }
 
+        self.row_mut(at.y).unwrap().highlight();
+        self.row_mut(at.y - 1).unwrap().highlight();
         self.dirty = true;
     }
 
@@ -109,6 +116,9 @@ impl Buffer {
         }
 
         self.rows.push(Row::default());
+
+        self.row_mut(at.y).unwrap().highlight();
+        self.row_mut(at.y + 1).unwrap().highlight();
 
         self.dirty = true;
     }
@@ -140,20 +150,21 @@ impl Row {
         let start = std::cmp::min(start, end);
         let mut result = String::new();
 
-        use termion::color::*;
-
-        for c in self
+        for (index, c) in self
             .string
             .get(start..end)
             .unwrap_or_default()
             .to_string()
             .chars()
+            .enumerate()
         {
-            if c.is_ascii_digit() {
-                result.push_str(&termutils::color_fg(c, Rgb(220, 163, 163)));
-            } else {
-                result.push(c);
-            }
+            result.push_str(&color_fg(
+                c,
+                self.highlighting
+                    .get(index)
+                    .unwrap_or(&HighlightType::default())
+                    .to_color(),
+            ));
         }
 
         result
@@ -181,6 +192,18 @@ impl Row {
         self.string = final_string;
     }
 
+    pub fn highlight(&mut self) {
+        let mut highlighting = Vec::new();
+        for c in self.string.chars() {
+            if c.is_ascii_digit() {
+                highlighting.push(HighlightType::Number);
+            } else {
+                highlighting.push(HighlightType::None)
+            }
+        }
+        self.highlighting = highlighting;
+    }
+
     pub fn len(&self) -> usize {
         self.string.len()
     }
@@ -198,6 +221,7 @@ impl From<&str> for Row {
     fn from(value: &str) -> Self {
         Self {
             string: String::from(value),
+            highlighting: Vec::new(),
         }
     }
 }

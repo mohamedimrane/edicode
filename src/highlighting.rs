@@ -1,4 +1,4 @@
-use termion::color::{Color, Reset, Rgb};
+use termion::color::{Color, Rgb};
 
 pub enum HighlightType {
     Number,
@@ -13,5 +13,11 @@ impl HighlightType {
             Number => Rgb(220, 163, 163),
             None => Rgb(255, 255, 255),
         }
+    }
+}
+
+impl Default for HighlightType {
+    fn default() -> Self {
+        Self::None
     }
 }
