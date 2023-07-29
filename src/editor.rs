@@ -407,7 +407,7 @@ impl Editor {
         println!("{}\r", welcome_message);
     }
 
-    fn command_save_file(&mut self, command: &Vec<&str>) -> Result<(), io::Error> {
+    fn command_save_file(&mut self, command: &[&str]) -> Result<(), io::Error> {
         let buffer = &mut self.buffers[self.current_buffer];
         let mut save_location = buffer.save_location.clone().unwrap_or_default();
         if let Some(new_save_location) = command.get(1).copied() {
@@ -427,18 +427,18 @@ impl Editor {
         Ok(())
     }
 
-    fn command_quit(&mut self, _command: &Vec<&str>) -> Result<(), io::Error> {
+    fn command_quit(&mut self, _command: &[&str]) -> Result<(), io::Error> {
         self.should_quit = true;
         Ok(())
     }
 
-    fn command_new_buffer(&mut self, _command: &Vec<&str>) -> Result<(), io::Error> {
+    fn command_new_buffer(&mut self, _command: &[&str]) -> Result<(), io::Error> {
         self.add_buffer(Buffer::default());
         self.cursor_position = Position::default();
         Ok(())
     }
 
-    fn command_open_file(&mut self, command: &Vec<&str>) -> Result<(), io::Error> {
+    fn command_open_file(&mut self, command: &[&str]) -> Result<(), io::Error> {
         if let Some(file_location) = command.get(1) {
             let buffer = match Buffer::open(file_location) {
                 Ok(buffer) => buffer,
@@ -459,7 +459,7 @@ impl Editor {
         Ok(())
     }
 
-    fn command_buffer_next(&mut self, _command: &Vec<&str>) -> Result<(), io::Error> {
+    fn command_buffer_next(&mut self, _command: &[&str]) -> Result<(), io::Error> {
         if self.current_buffer + 1 == self.buffers.len() {
             self.current_buffer = 0;
             return Ok(());
@@ -470,7 +470,7 @@ impl Editor {
         Ok(())
     }
 
-    fn command_buffer_previous(&mut self, _command: &Vec<&str>) -> Result<(), io::Error> {
+    fn command_buffer_previous(&mut self, _command: &[&str]) -> Result<(), io::Error> {
         if self.current_buffer == 0 {
             self.current_buffer = self.buffers.len() - 1;
             return Ok(());
