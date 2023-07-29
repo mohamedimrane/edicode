@@ -176,6 +176,10 @@ impl Editor {
                 self.command_buffer_next(&command)?;
                 Ok(())
             }
+            "bp" => {
+                self.command_buffer_previous(&command)?;
+                Ok(())
+            }
             "" => Ok(()),
             _ => {
                 self.prompt_bar_message =
@@ -453,6 +457,17 @@ impl Editor {
         }
 
         self.current_buffer += 1;
+
+        Ok(())
+    }
+
+    fn command_buffer_previous(&mut self, _command: &Vec<&str>) -> Result<(), io::Error> {
+        if self.current_buffer == 0 {
+            self.current_buffer = self.buffers.len() - 1;
+            return Ok(());
+        }
+
+        self.current_buffer -= 1;
 
         Ok(())
     }
