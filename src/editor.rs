@@ -116,6 +116,9 @@ impl Editor {
             {
                 self.move_cursor(pressed_key)
             }
+            Key::Char('d') if self.mode == Mode::Normal => {
+                self.buffers[self.current_buffer].delete(&self.cursor_position, false);
+            }
 
             // insert mode specific
             Key::Backspace if self.mode == Mode::Insert => {
@@ -133,7 +136,7 @@ impl Editor {
                         self.move_cursor(Key::Left);
                     }
 
-                    self.buffers[self.current_buffer].delete(&Position { x, y });
+                    self.buffers[self.current_buffer].delete(&Position { x, y }, true);
                 }
             }
             Key::Char(c) if self.mode == Mode::Insert => {

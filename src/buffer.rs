@@ -63,8 +63,17 @@ impl Buffer {
         self.dirty = true;
     }
 
-    pub fn delete(&mut self, at: &crate::cursor::Position) {
-        if at.y >= self.len() || (at.x == 0 && at.y == 0) {
+    pub fn delete(&mut self, at: &crate::cursor::Position, backspace: bool) {
+        if at.y >= self.len() {
+            return;
+        }
+
+        if !backspace {
+            self.row_mut(at.y).unwrap().delete(at.x);
+            return;
+        }
+
+        if at.x == 0 && at.y == 0 {
             return;
         }
 
@@ -77,7 +86,6 @@ impl Buffer {
 
             return;
         } else {
-            // let x = at.x.saturating_sub(1);
             self.row_mut(at.y).unwrap().delete(at.x.saturating_sub(1));
         }
 
