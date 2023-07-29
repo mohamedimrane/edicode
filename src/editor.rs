@@ -151,32 +151,32 @@ impl Editor {
     fn process_command(&mut self, command: String) -> Result<(), io::Error> {
         let command = command.split(' ').collect::<Vec<&str>>();
         match command[0] {
-            "w" => {
+            "w" | "write" => {
                 self.command_save_file(&command)?;
                 Ok(())
             }
-            "q" => {
+            "q" | "quit" => {
                 self.command_quit(&command)?;
                 Ok(())
             }
-            "wq" | "x" => {
+            "wq" | "write-quit" | "x" => {
                 self.command_save_file(&command)?;
                 self.command_quit(&command)?;
                 Ok(())
             }
-            "n" => {
+            "n" | "new" => {
                 self.command_new_buffer(&command)?;
                 Ok(())
             }
-            "o" => {
+            "o" | "open" => {
                 self.command_open_file(&command)?;
                 Ok(())
             }
-            "bn" => {
+            "bn" | "buffer-next" => {
                 self.command_buffer_next(&command)?;
                 Ok(())
             }
-            "bp" => {
+            "bp" | "buffer-previous" => {
                 self.command_buffer_previous(&command)?;
                 Ok(())
             }
