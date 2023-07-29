@@ -100,51 +100,55 @@ impl Editor {
         self.prompt_bar_message = Message::default();
 
         match pressed_key {
-            // non mode specific
             Key::Esc => self.mode = Mode::Normal,
             Key::Up | Key::Down | Key::Left | Key::Right => self.move_cursor(pressed_key),
-
-            // normal mode specific
-            Key::Char(':') if self.mode == Mode::Normal => {
-                if let Ok(Some(command)) = self.prompt(":") {
-                    self.process_command(command)?;
-                }
-            }
-            Key::Char('i') if self.mode == Mode::Normal => self.mode = Mode::Insert,
-            Key::Char('k') | Key::Char('j') | Key::Char('h') | Key::Char('l')
-                if self.mode == Mode::Normal =>
-            {
-                self.move_cursor(pressed_key)
-            }
-            Key::Char('d') if self.mode == Mode::Normal => {
-                self.buffers[self.current_buffer].delete(&self.cursor_position, false);
-            }
-
-            // insert mode specific
-            Key::Backspace if self.mode == Mode::Insert => {
-                let x = self.cursor_position.x;
-                let y = self.cursor_position.y;
-
-                if !(x == 0 && y == 0) {
-                    if x == 0 {
-                        self.cursor_position.y = y.saturating_sub(1);
-                        self.cursor_position.x = self.buffers[self.current_buffer]
-                            .row(y.saturating_sub(1))
-                            .unwrap()
-                            .len();
-                    } else {
-                        self.move_cursor(Key::Left);
-                    }
-
-                    self.buffers[self.current_buffer].delete(&Position { x, y }, true);
-                }
-            }
-            Key::Char(c) if self.mode == Mode::Insert => {
-                self.buffers[self.current_buffer].insert(c, &self.cursor_position);
-                self.move_cursor(Key::Right);
-            }
             _ => (),
         };
+
+        match self.mode {
+            Mode::Normal => match pressed_key {
+                Key::Char(':') if self.mode == Mode::Normal => {
+                    if let Ok(Some(command)) = self.prompt(":") {
+                        self.process_command(command)?;
+                    }
+                }
+                Key::Char('i') if self.mode == Mode::Normal => self.mode = Mode::Insert,
+                Key::Char('k') | Key::Char('j') | Key::Char('h') | Key::Char('l')
+                    if self.mode == Mode::Normal =>
+                {
+                    self.move_cursor(pressed_key)
+                }
+                Key::Char('d') if self.mode == Mode::Normal => {
+                    self.buffers[self.current_buffer].delete(&self.cursor_position, false);
+                }
+                _ => (),
+            },
+            Mode::Insert => match pressed_key {
+                Key::Backspace if self.mode == Mode::Insert => {
+                    let x = self.cursor_position.x;
+                    let y = self.cursor_position.y;
+
+                    if !(x == 0 && y == 0) {
+                        if x == 0 {
+                            self.cursor_position.y = y.saturating_sub(1);
+                            self.cursor_position.x = self.buffers[self.current_buffer]
+                                .row(y.saturating_sub(1))
+                                .unwrap()
+                                .len();
+                        } else {
+                            self.move_cursor(Key::Left);
+                        }
+
+                        self.buffers[self.current_buffer].delete(&Position { x, y }, true);
+                    }
+                }
+                Key::Char(c) if self.mode == Mode::Insert => {
+                    self.buffers[self.current_buffer].insert(c, &self.cursor_position);
+                    self.move_cursor(Key::Right);
+                }
+                _ => (),
+            },
+        }
 
         self.scroll();
 
