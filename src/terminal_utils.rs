@@ -42,3 +42,11 @@ pub fn set_fg_color(color: Rgb) {
 pub fn reset_fg_color() {
     print!("{}", Fg(Reset));
 }
+
+pub fn color_bg(string: impl std::fmt::Display, color: impl Color) -> String {
+    format!("{}{}{}", Bg(color), string, Bg(Reset))
+}
+
+pub fn color_fg(string: impl std::fmt::Display, color: impl Color) -> String {
+    format!("{}{}{}", Fg(color), string, Fg(Reset))
+}

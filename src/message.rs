@@ -1,3 +1,6 @@
+use crate::terminal_utils::color_fg;
+use termion::color::{Reset, Rgb};
+
 #[derive(Clone)]
 pub struct Message {
     pub kind: MessageType,
@@ -41,24 +44,11 @@ impl Default for Message {
 
 impl std::fmt::Display for Message {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use termion::color::{Fg, Reset, Rgb};
         use MessageType::*;
 
-        // let color: dyn color::Color = match self.kind {
-        //     Normal => Reset,
-        //     Error => Rgb(255, 0, 0),
-        // };
-        // write!(
-        //     f,
-        //     "{}{}{}",
-        //     Fg(Red),
-        //     self.message,
-        //     Fg(Reset)
-        // )
-
         match self.kind {
-            Normal => write!(f, "{}{}", Fg(Reset), self.message),
-            Error => write!(f, "{}{}{}", Fg(Rgb(255, 0, 0)), self.message, Fg(Reset)),
+            Normal => write!(f, "{}", color_fg(&self.message, Reset)),
+            Error => write!(f, "{}", color_fg(&self.message, Rgb(255, 0, 0))),
         }
     }
 }

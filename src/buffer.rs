@@ -3,6 +3,8 @@ use std::{
     io::{self, Write},
 };
 
+use crate::terminal_utils as termutils;
+
 #[derive(Default)]
 pub struct Buffer {
     pub save_location: Option<String>,
@@ -148,7 +150,7 @@ impl Row {
             .chars()
         {
             if c.is_ascii_digit() {
-                result.push_str(&format!("{}{}{}", Fg(Rgb(220, 163, 163)), c, Fg(Reset)))
+                result.push_str(&termutils::color_fg(c, Rgb(220, 163, 163)));
             } else {
                 result.push(c);
             }
