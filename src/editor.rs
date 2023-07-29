@@ -384,7 +384,9 @@ impl Editor {
 
     fn draw_command_bar(&self) {
         termutils::clear_line();
-        println!("{}", self.prompt_bar_message);
+        let mut text = self.prompt_bar_message.clone();
+        text.message.truncate(self.terminal_size.0 as usize);
+        println!("{}", text);
     }
 
     fn draw_welcome_message(&self) {

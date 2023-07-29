@@ -1,8 +1,10 @@
+#[derive(Clone)]
 pub struct Message {
-    kind: MessageType,
-    message: String,
+    pub kind: MessageType,
+    pub message: String,
 }
 
+#[derive(Clone)]
 pub enum MessageType {
     Normal,
     Error,
