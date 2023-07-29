@@ -150,7 +150,7 @@ impl Row {
             if c.is_ascii_digit() {
                 result.push_str(&format!("{}{}{}", Fg(Rgb(220, 163, 163)), c, Fg(Reset)))
             } else {
-                result.push(c as char);
+                result.push(c);
             }
         }
 
