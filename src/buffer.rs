@@ -136,7 +136,25 @@ impl Row {
     pub fn render(&self, start: usize, end: usize) -> String {
         let end = std::cmp::min(end, self.string.len());
         let start = std::cmp::min(start, end);
-        self.string.get(start..end).unwrap_or_default().to_string()
+        let mut result = String::new();
+
+        use termion::color::*;
+
+        for c in self
+            .string
+            .get(start..end)
+            .unwrap_or_default()
+            .to_string()
+            .chars()
+        {
+            if c.is_ascii_digit() {
+                result.push_str(&format!("{}{}{}", Fg(Rgb(220, 163, 163)), c, Fg(Reset)))
+            } else {
+                result.push(c as char);
+            }
+        }
+
+        result
     }
 
     pub fn insert(&mut self, at: usize, c: char) {
