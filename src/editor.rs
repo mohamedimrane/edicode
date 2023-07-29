@@ -172,6 +172,10 @@ impl Editor {
                 self.command_open_file(&command)?;
                 Ok(())
             }
+            "bn" => {
+                self.command_buffer_next(&command)?;
+                Ok(())
+            }
             "" => Ok(()),
             _ => {
                 self.prompt_bar_message =
@@ -438,6 +442,17 @@ impl Editor {
         } else {
             self.prompt_bar_message = Message::new_error("File path not given!".to_string());
         }
+
+        Ok(())
+    }
+
+    fn command_buffer_next(&mut self, _command: &Vec<&str>) -> Result<(), io::Error> {
+        if self.current_buffer + 1 == self.buffers.len() {
+            self.current_buffer = 0;
+            return Ok(());
+        }
+
+        self.current_buffer += 1;
 
         Ok(())
     }
