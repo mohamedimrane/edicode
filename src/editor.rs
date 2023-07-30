@@ -383,6 +383,7 @@ impl Editor {
         } else {
             ""
         };
+        let file_type = format!("{}", self.buffers[self.current_buffer].file_type);
         let current_pos = format!(
             "{}:{}",
             self.cursor_positions[self.current_buffer].y + 1,
@@ -392,7 +393,7 @@ impl Editor {
         let mut status = String::new();
 
         let left_side = format!("{}   {} {}", mode, file_name, is_dirty);
-        let right_side = format!("{}", current_pos);
+        let right_side = format!("{}   {}", file_type, current_pos);
 
         status.push_str(&left_side);
 

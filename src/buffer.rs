@@ -1,4 +1,4 @@
-use crate::highlighting::HighlightType;
+use crate::{file_type::FileType, highlighting::HighlightType};
 use std::{
     fs,
     io::{self, Write},
@@ -7,6 +7,7 @@ use std::{
 #[derive(Default)]
 pub struct Buffer {
     pub save_location: Option<String>,
+    pub file_type: FileType,
     rows: Vec<Row>,
     dirty: bool,
 }
@@ -31,6 +32,7 @@ impl Buffer {
 
         Ok(Self {
             save_location: Some(file_name.to_string()),
+            file_type: FileType::from(file_name),
             rows,
             dirty: false,
         })
