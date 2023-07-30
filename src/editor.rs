@@ -108,7 +108,8 @@ impl Editor {
         match self.mode {
             Mode::Normal => match pressed_key {
                 Key::Char(':') if self.mode == Mode::Normal => {
-                    if let Ok(Some(command)) = self.prompt(":") {
+                    let prompt = self.prompt(":")?;
+                    if let Some(command) = prompt {
                         self.process_command(command)?;
                     }
                 }
