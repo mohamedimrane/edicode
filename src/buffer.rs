@@ -200,12 +200,24 @@ impl Row {
 
     pub fn highlight(&mut self) {
         let mut highlighting = Vec::new();
-        for c in self.string.chars() {
-            if c.is_ascii_digit() {
+        let mut previous_is_separator = true;
+        for (index, c) in self.string.chars().enumerate() {
+            let previous_highlight = if index > 0 {
+                highlighting.get(index - 1).unwrap_or(&HighlightType::None)
+            } else {
+                &HighlightType::None
+            };
+
+            if (c.is_ascii_digit()
+                && (previous_is_separator || previous_highlight == &HighlightType::Number))
+                || (c == '.' && previous_highlight == &HighlightType::Number)
+            {
                 highlighting.push(HighlightType::Number);
             } else {
                 highlighting.push(HighlightType::None)
             }
+
+            previous_is_separator = c.is_ascii_punctuation() || c.is_whitespace();
         }
         self.highlighting = highlighting;
     }
