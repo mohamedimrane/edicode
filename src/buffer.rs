@@ -97,7 +97,7 @@ impl Buffer {
         }
 
         self.row_mut(at.y).unwrap().highlight();
-        self.row_mut(at.y - 1).unwrap().highlight();
+        self.row_mut(at.y.saturating_sub(1)).unwrap().highlight();
         self.dirty = true;
     }
 
