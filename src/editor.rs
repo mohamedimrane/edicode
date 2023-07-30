@@ -187,6 +187,12 @@ impl Editor {
                 self.command_buffer_previous(&command)?;
                 Ok(())
             }
+            "🍷🗿" => {
+                self.prompt_bar_message = Message::new_normal(
+                    "Thank you! What a nice gentleman you are 🍷🗿".to_string(),
+                );
+                Ok(())
+            }
             "" => Ok(()),
             _ => {
                 self.prompt_bar_message =
