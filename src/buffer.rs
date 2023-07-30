@@ -1,5 +1,4 @@
 use crate::highlighting::HighlightType;
-use crate::terminal_utils::color_fg;
 use std::{
     fs,
     io::{self, Write},
@@ -150,6 +149,9 @@ impl Row {
         let start = std::cmp::min(start, end);
         let mut result = String::new();
 
+        use termion::color::{Fg, Reset};
+
+        let mut current_highlight = &HighlightType::default();
         for (index, c) in self
             .string
             .get(start..end)
@@ -158,14 +160,18 @@ impl Row {
             .chars()
             .enumerate()
         {
-            result.push_str(&color_fg(
-                c,
-                self.highlighting
-                    .get(index)
-                    .unwrap_or(&HighlightType::default())
-                    .to_color(),
-            ));
+            let highlighting_type = self.highlighting.get(index).unwrap_or(&HighlightType::None);
+
+            if highlighting_type != current_highlight {
+                current_highlight = highlighting_type;
+                let start_highlighting = format!("{}", Fg(highlighting_type.to_color()));
+                result.push_str(&start_highlighting);
+            }
+
+            result.push(c);
         }
+        let end_highlight = format!("{}", Fg(Reset));
+        result.push_str(&end_highlight);
 
         result
     }

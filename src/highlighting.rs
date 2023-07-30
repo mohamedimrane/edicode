@@ -1,5 +1,6 @@
 use termion::color::{Color, Rgb};
 
+#[derive(PartialEq, Eq)]
 pub enum HighlightType {
     Number,
     None,
