@@ -5,6 +5,7 @@ use termion::raw::IntoRawMode;
 mod buffer;
 mod cursor;
 mod editor;
+mod file_type;
 mod highlighting;
 mod message;
 mod terminal_utils;
