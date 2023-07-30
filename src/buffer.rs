@@ -1,4 +1,7 @@
-use crate::{file_type::FileType, highlighting::HighlightType};
+use crate::{
+    file_type::FileType,
+    highlighting::{HighlightType, HighlightingOptions},
+};
 use std::{
     fs,
     io::{self, Write},
@@ -24,15 +27,17 @@ impl Buffer {
 
         let mut rows = Vec::new();
 
+        let file_type = FileType::from(file_name);
+
         for value in contents.lines() {
             let mut row = Row::from(value);
-            row.highlight();
+            row.highlight(file_type.clone().into());
             rows.push(row);
         }
 
         Ok(Self {
             save_location: Some(file_name.to_string()),
-            file_type: FileType::from(file_name),
+            file_type,
             rows,
             dirty: false,
         })
@@ -66,7 +71,7 @@ impl Buffer {
             _ => (),
         }
 
-        self.row_mut(at.y).unwrap().highlight();
+        self.highlight_row(at.y);
         self.dirty = true;
     }
 
@@ -77,7 +82,7 @@ impl Buffer {
 
         if !backspace {
             self.row_mut(at.y).unwrap().delete(at.x);
-            self.row_mut(at.y).unwrap().highlight();
+            self.highlight_row(at.y);
             return;
         }
 
@@ -97,8 +102,8 @@ impl Buffer {
             self.row_mut(at.y).unwrap().delete(at.x.saturating_sub(1));
         }
 
-        self.row_mut(at.y).unwrap().highlight();
-        self.row_mut(at.y.saturating_sub(1)).unwrap().highlight();
+        self.highlight_row(at.y);
+        self.highlight_row(at.y.saturating_sub(1));
         self.dirty = true;
     }
 
@@ -118,10 +123,15 @@ impl Buffer {
 
         self.rows.push(Row::default());
 
-        self.row_mut(at.y).unwrap().highlight();
-        self.row_mut(at.y + 1).unwrap().highlight();
+        self.highlight_row(at.y);
+        self.highlight_row(at.y + 1);
 
         self.dirty = true;
+    }
+
+    fn highlight_row(&mut self, at: usize) {
+        let options = self.file_type.clone().into();
+        self.row_mut(at).unwrap().highlight(options);
     }
 
     pub fn row(&self, index: usize) -> Option<&Row> {
@@ -200,7 +210,7 @@ impl Row {
         self.string = final_string;
     }
 
-    pub fn highlight(&mut self) {
+    pub fn highlight(&mut self, options: HighlightingOptions) {
         let mut highlighting = Vec::new();
         let mut previous_is_separator = true;
         for (index, c) in self.string.chars().enumerate() {
@@ -210,8 +220,9 @@ impl Row {
                 &HighlightType::None
             };
 
-            if (c.is_ascii_digit()
-                && (previous_is_separator || previous_highlight == &HighlightType::Number))
+            if options.highlight_numbers()
+                && (c.is_ascii_digit()
+                    && (previous_is_separator || previous_highlight == &HighlightType::Number))
                 || (c == '.' && previous_highlight == &HighlightType::Number)
             {
                 highlighting.push(HighlightType::Number);

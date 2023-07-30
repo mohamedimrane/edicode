@@ -1,3 +1,6 @@
+use crate::highlighting::HighlightingOptions;
+
+#[derive(Clone)]
 pub enum FileType {
     PlainText,
     Rust,
@@ -25,6 +28,21 @@ impl From<String> for FileType {
             "js" => Self::Javascript,
             "ts" => Self::Typescript,
             _ => Self::PlainText,
+        }
+    }
+}
+
+impl Into<HighlightingOptions> for FileType {
+    fn into(self) -> HighlightingOptions {
+        use FileType::*;
+
+        match self {
+            PlainText => HighlightingOptions {
+                highlight_numbers: false,
+            },
+            Rust | Golang | Javascript | Typescript => HighlightingOptions {
+                highlight_numbers: true,
+            },
         }
     }
 }

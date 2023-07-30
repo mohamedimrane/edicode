@@ -7,7 +7,7 @@ pub enum HighlightType {
 }
 
 pub struct HighlightingOptions {
-    highlight_numbers: bool,
+    pub highlight_numbers: bool,
 }
 
 impl HighlightType {
