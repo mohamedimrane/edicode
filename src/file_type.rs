@@ -1,5 +1,3 @@
-use crate::highlighting::HighlightOptions;
-
 pub enum FileType {
     PlainText,
     Rust,
