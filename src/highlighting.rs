@@ -6,6 +6,10 @@ pub enum HighlightType {
     None,
 }
 
+pub struct HighlightingOptions {
+    highlight_numbers: bool,
+}
+
 impl HighlightType {
     pub fn to_color(&self) -> impl Color {
         use HighlightType::*;
@@ -14,6 +18,12 @@ impl HighlightType {
             Number => Rgb(220, 163, 163),
             None => Rgb(255, 255, 255),
         }
+    }
+}
+
+impl HighlightingOptions {
+    pub fn highlight_numbers(&self) -> bool {
+        self.highlight_numbers
     }
 }
 
