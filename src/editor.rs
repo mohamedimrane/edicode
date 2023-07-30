@@ -19,12 +19,12 @@ enum Mode {
 
 pub struct Editor {
     buffers: Vec<Buffer>,
+    cursor_positions: Vec<Position>,
+    scroll_offsets: Vec<Position>,
     current_buffer: usize,
     terminal_size: (u16, u16),
     mode: Mode,
     prompt_bar_message: Message,
-    cursor_position: Position,
-    offset: Position,
     should_quit: bool,
 }
 
@@ -49,8 +49,8 @@ impl Default for Editor {
             terminal_size,
             mode: Mode::Normal,
             prompt_bar_message: Message::default(),
-            cursor_position: Position::default(),
-            offset: Position::default(),
+            cursor_positions: vec![Position::default()],
+            scroll_offsets: vec![Position::default()],
             should_quit: false,
         }
     }
@@ -85,8 +85,12 @@ impl Editor {
             self.draw_status_bar();
             self.draw_command_bar();
             termutils::set_cursor_position(&Position {
-                x: self.cursor_position.x.saturating_sub(self.offset.x),
-                y: self.cursor_position.y.saturating_sub(self.offset.y),
+                x: self.cursor_positions[self.current_buffer]
+                    .x
+                    .saturating_sub(self.scroll_offsets[self.current_buffer].x),
+                y: self.cursor_positions[self.current_buffer]
+                    .y
+                    .saturating_sub(self.scroll_offsets[self.current_buffer].y),
             });
         }
 
@@ -120,19 +124,21 @@ impl Editor {
                     self.move_cursor(pressed_key)
                 }
                 Key::Char('d') if self.mode == Mode::Normal => {
-                    self.buffers[self.current_buffer].delete(&self.cursor_position, false);
+                    self.buffers[self.current_buffer]
+                        .delete(&self.cursor_positions[self.current_buffer], false);
                 }
                 _ => (),
             },
             Mode::Insert => match pressed_key {
                 Key::Backspace if self.mode == Mode::Insert => {
-                    let x = self.cursor_position.x;
-                    let y = self.cursor_position.y;
+                    let x = self.cursor_positions[self.current_buffer].x;
+                    let y = self.cursor_positions[self.current_buffer].y;
 
                     if !(x == 0 && y == 0) {
                         if x == 0 {
-                            self.cursor_position.y = y.saturating_sub(1);
-                            self.cursor_position.x = self.buffers[self.current_buffer]
+                            self.cursor_positions[self.current_buffer].y = y.saturating_sub(1);
+                            self.cursor_positions[self.current_buffer].x = self.buffers
+                                [self.current_buffer]
                                 .row(y.saturating_sub(1))
                                 .unwrap()
                                 .len();
@@ -144,7 +150,8 @@ impl Editor {
                     }
                 }
                 Key::Char(c) if self.mode == Mode::Insert => {
-                    self.buffers[self.current_buffer].insert(c, &self.cursor_position);
+                    self.buffers[self.current_buffer]
+                        .insert(c, &self.cursor_positions[self.current_buffer]);
                     self.move_cursor(Key::Right);
                 }
                 _ => (),
@@ -247,25 +254,31 @@ impl Editor {
     }
 
     fn scroll(&mut self) {
-        if self.cursor_position.y < self.offset.y {
-            self.offset.y = self.cursor_position.y;
-        } else if self.cursor_position.y
-            >= self.offset.y.saturating_add(self.terminal_size.1 as usize)
+        if self.cursor_positions[self.current_buffer].y < self.scroll_offsets[self.current_buffer].y
         {
-            self.offset.y = self
-                .cursor_position
+            self.scroll_offsets[self.current_buffer].y =
+                self.cursor_positions[self.current_buffer].y;
+        } else if self.cursor_positions[self.current_buffer].y
+            >= self.scroll_offsets[self.current_buffer]
+                .y
+                .saturating_add(self.terminal_size.1 as usize)
+        {
+            self.scroll_offsets[self.current_buffer].y = self.cursor_positions[self.current_buffer]
                 .y
                 .saturating_sub(self.terminal_size.1 as usize)
                 .saturating_add(1);
         }
 
-        if self.cursor_position.x < self.offset.x {
-            self.offset.x = self.cursor_position.x;
-        } else if self.cursor_position.x
-            >= self.offset.x.saturating_add(self.terminal_size.0 as usize)
+        if self.cursor_positions[self.current_buffer].x < self.scroll_offsets[self.current_buffer].x
         {
-            self.offset.x = self
-                .cursor_position
+            self.scroll_offsets[self.current_buffer].x =
+                self.cursor_positions[self.current_buffer].x;
+        } else if self.cursor_positions[self.current_buffer].x
+            >= self.scroll_offsets[self.current_buffer]
+                .x
+                .saturating_add(self.terminal_size.0 as usize)
+        {
+            self.scroll_offsets[self.current_buffer].x = self.cursor_positions[self.current_buffer]
                 .x
                 .saturating_sub(self.terminal_size.0 as usize)
                 .saturating_add(1);
@@ -273,8 +286,9 @@ impl Editor {
     }
 
     fn move_cursor(&mut self, pressed_key: Key) {
-        let x = &mut self.cursor_position.x;
-        let y = &mut self.cursor_position.y;
+        let current_pos = &mut self.cursor_positions[self.current_buffer];
+        let x = &mut current_pos.x;
+        let y = &mut current_pos.y;
 
         let height = self.buffers[self.current_buffer].len();
         let mut width = if let Some(row) = self.buffers[self.current_buffer].row(*y) {
@@ -328,7 +342,10 @@ impl Editor {
     fn draw_row(&self, row: &Row) {
         println!(
             "{}\r",
-            row.render(self.offset.x, self.terminal_size.0 as usize + self.offset.x)
+            row.render(
+                self.scroll_offsets[self.current_buffer].x,
+                self.terminal_size.0 as usize + self.scroll_offsets[self.current_buffer].x
+            )
         );
     }
 
@@ -337,7 +354,9 @@ impl Editor {
             termutils::clear_line();
             let buffer = &self.buffers[self.current_buffer];
 
-            if let Some(row) = buffer.row(terminal_row as usize + self.offset.y) {
+            if let Some(row) =
+                buffer.row(terminal_row as usize + self.scroll_offsets[self.current_buffer].y)
+            {
                 self.draw_row(row);
             } else if buffer.is_empty() && terminal_row == self.terminal_size.1 / 3 {
                 self.draw_welcome_message();
@@ -366,8 +385,8 @@ impl Editor {
         };
         let current_pos = format!(
             "{}:{}",
-            self.cursor_position.y + 1,
-            self.cursor_position.x + 1
+            self.cursor_positions[self.current_buffer].y + 1,
+            self.cursor_positions[self.current_buffer].x + 1
         );
 
         let mut status = String::new();
@@ -441,7 +460,6 @@ impl Editor {
 
     fn command_new_buffer(&mut self, _command: &[&str]) -> Result<(), io::Error> {
         self.add_buffer(Buffer::default());
-        self.cursor_position = Position::default();
         Ok(())
     }
 
@@ -490,6 +508,8 @@ impl Editor {
 
     fn add_buffer(&mut self, buffer: Buffer) {
         self.buffers.push(buffer);
+        self.cursor_positions.push(Position::default());
+        self.scroll_offsets.push(Position::default());
         self.current_buffer += 1;
     }
 }
