@@ -45,9 +45,14 @@ impl Buffer {
 
     pub fn save(&mut self, save_location: &str) -> Result<(), io::Error> {
         let mut file = fs::File::create(save_location)?;
-        for row in &self.rows {
+        self.file_type = FileType::from(save_location);
+
+        for row in self.rows.iter_mut() {
             file.write_all(row.as_bytes())?;
             file.write_all(b"\n")?;
+
+            let options = self.file_type.clone().into();
+            row.highlight(options);
         }
 
         self.dirty = false;
