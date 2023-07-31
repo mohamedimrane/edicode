@@ -195,6 +195,10 @@ impl Editor {
                 self.command_buffer_previous(&command)?;
                 Ok(())
             }
+            "bc" | "buffer-close" => {
+                self.command_buffer_close(&command)?;
+                Ok(())
+            }
             "🍷🗿" => {
                 self.prompt_bar_message = Message::new_normal(
                     "Thank you! What a nice gentleman you are 🍷🗿".to_string(),
@@ -503,6 +507,24 @@ impl Editor {
         }
 
         self.current_buffer -= 1;
+
+        Ok(())
+    }
+
+    fn command_buffer_close(&mut self, _command: &[&str]) -> Result<(), io::Error> {
+        self.buffers.remove(self.current_buffer);
+        self.cursor_positions.remove(self.current_buffer);
+        self.scroll_offsets.remove(self.current_buffer);
+
+        if self.buffers.is_empty() {
+            self.add_buffer(Buffer::default());
+            self.current_buffer = 0;
+            return Ok(());
+        }
+
+        if self.current_buffer == self.buffers.len() {
+            self.current_buffer = self.buffers.len() - 1;
+        }
 
         Ok(())
     }
