@@ -183,6 +183,8 @@ impl Row {
                 current_highlight = highlighting_type;
                 let start_highlighting = format!("{}", Fg(highlighting_type.to_color()));
                 result.push_str(&start_highlighting);
+            } else {
+                result.push_str(&format!("{}", Fg(highlighting_type.to_color())));
             }
 
             result.push(c);
