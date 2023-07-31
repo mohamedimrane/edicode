@@ -17,7 +17,7 @@ impl From<&str> for FileType {
 
 impl From<String> for FileType {
     fn from(value: String) -> Self {
-        let extension = value.split('.').into_iter().last().unwrap_or_default();
+        let extension = value.split('.').last().unwrap_or_default();
         if extension.is_empty() {
             return Self::PlainText;
         }
@@ -39,11 +39,11 @@ impl Into<HighlightingOptions> for FileType {
         match self {
             PlainText => HighlightingOptions {
                 highlight_numbers: false,
-                highlight_strings: None
+                highlight_strings: None,
             },
             Rust | Golang | Javascript | Typescript => HighlightingOptions {
                 highlight_numbers: true,
-                highlight_strings: Some(vec!['\'', '"'])
+                highlight_strings: Some(vec!['\'', '"']),
             },
         }
     }
