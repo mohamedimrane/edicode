@@ -39,9 +39,11 @@ impl Into<HighlightingOptions> for FileType {
         match self {
             PlainText => HighlightingOptions {
                 highlight_numbers: false,
+                highlight_strings: None
             },
             Rust | Golang | Javascript | Typescript => HighlightingOptions {
                 highlight_numbers: true,
+                highlight_strings: Some(vec!['\'', '"'])
             },
         }
     }

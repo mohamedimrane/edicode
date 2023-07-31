@@ -216,24 +216,59 @@ impl Row {
     }
 
     pub fn highlight(&mut self, options: HighlightingOptions) {
+        let chars = self.string.chars().collect::<Vec<char>>();
         let mut highlighting = Vec::new();
         let mut previous_is_separator = true;
-        for (index, c) in self.string.chars().enumerate() {
+        let mut in_string = false;
+        let mut index = 0;
+        while let Some(c) = chars.get(index) {
             let previous_highlight = if index > 0 {
                 highlighting.get(index - 1).unwrap_or(&HighlightType::None)
             } else {
                 &HighlightType::None
             };
 
+            if options.highlight_strings() {
+                if in_string {
+                    highlighting.push(HighlightType::String);
+
+                    if *c == '\\' && index < self.len().saturating_sub(1) {
+                        highlighting.push(HighlightType::String);
+                        index += 2;
+                        continue;
+                    }
+
+                    if options.is_string_delimiter(*c) {
+                        in_string = false;
+                        previous_is_separator = true;
+                    } else {
+                        previous_is_separator = false;
+                    }
+
+                    index += 1;
+                    continue;
+                } else if previous_is_separator && options.is_string_delimiter(*c) {
+                    highlighting.push(HighlightType::String);
+
+                    in_string = true;
+                    previous_is_separator = true;
+
+                    index += 1;
+                    continue;
+                }
+            }
+
             if options.highlight_numbers()
                 && (c.is_ascii_digit()
                     && (previous_is_separator || previous_highlight == &HighlightType::Number))
-                || (c == '.' && previous_highlight == &HighlightType::Number)
+                || (*c == '.' && previous_highlight == &HighlightType::Number)
             {
                 highlighting.push(HighlightType::Number);
             } else {
-                highlighting.push(HighlightType::None)
+                highlighting.push(HighlightType::None);
             }
+
+            index += 1;
 
             previous_is_separator = c.is_ascii_punctuation() || c.is_whitespace();
         }
